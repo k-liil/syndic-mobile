@@ -1,10 +1,14 @@
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { Slot, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View, Text, ScrollView } from "react-native";
+import { ActivityIndicator, View, Text, ScrollView, Alert } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Colors } from "@/constants/colors";
+
+// Debug: Show that the app is starting
+console.log("[App] Starting...");
+Alert.alert("App Starting", "Syndicly Mobile v1.0.0 is initializing...");
 
 function RouteGuard() {
   const { state } = useAuth();
