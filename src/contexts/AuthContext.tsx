@@ -5,7 +5,8 @@ import type { UserProfile } from "@/types";
 type AuthState =
   | { status: "loading" }
   | { status: "unauthenticated" }
-  | { status: "authenticated"; user: UserProfile; token: string };
+  | { status: "authenticated"; user: UserProfile; token: string }
+  | { status: "error"; error: Error };
 
 type AuthContextValue = {
   state: AuthState;
@@ -44,8 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } catch (error) {
         console.error("[AuthProvider] Error during initialization:", error);
+        const err = error instanceof Error ? error : new Error(String(error));
+        setState({ status: "error", error: err });
         await deleteToken();
-        setState({ status: "unauthenticated" });
       }
     })();
   }, []);
