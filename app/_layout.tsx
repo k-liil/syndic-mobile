@@ -8,18 +8,23 @@ import { Colors } from "@/constants/colors";
 
 // Debug: Show that the app is starting
 console.log("[App] Starting...");
-Alert.alert("App Starting", "Syndicly Mobile v1.0.0 is initializing...");
+Alert.alert("Step 1/5", "App is initializing");
 
 function RouteGuard() {
   const { state } = useAuth();
   const router = useRouter();
   const segments = useSegments();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    Alert.alert("Step 2/5", "RouteGuard mounted\nState: " + state.status);
+    console.log("[RouteGuard] Mounted with state:", state.status);
+  }, []);
 
   // Debug: Log state changes
   useEffect(() => {
-    console.log("[RouteGuard] State changed:", state.status);
-  }, [state]);
+    console.log("[RouteGuard] State changed to:", state.status);
+    Alert.alert("Step 3/5", "State updated: " + state.status);
+  }, [state.status]);
 
   useEffect(() => {
     if (state.status === "loading" || state.status === "error") return;
