@@ -16,6 +16,11 @@ function RouteGuard() {
   const segments = useSegments();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log("[RouteGuard] State changed:", state.status);
+  }, [state]);
+
   useEffect(() => {
     if (state.status === "loading" || state.status === "error") return;
 
@@ -86,7 +91,17 @@ function RouteGuard() {
     );
   }
 
-  return <Slot />;
+  return (
+    <View style={{ flex: 1 }}>
+      <Slot />
+      {/* Debug info at bottom */}
+      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "rgba(0,0,0,0.8)", padding: 8 }}>
+        <Text style={{ color: "#fff", fontSize: 10, fontFamily: "monospace" }}>
+          Status: {state.status}
+        </Text>
+      </View>
+    </View>
+  );
 }
 
 export default function RootLayout() {
