@@ -22,19 +22,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void (async () => {
       try {
+        console.log("[AuthProvider] Initializing...");
         const token = await getStoredToken();
+        console.log("[AuthProvider] Token retrieved:", !!token);
+
         if (!token) {
+          console.log("[AuthProvider] No token found, user is unauthenticated");
           setState({ status: "unauthenticated" });
           return;
         }
+
         // Validate token by calling /api/mobile/me
+        console.log("[AuthProvider] Validating token with API...");
         const profile = await fetchMe();
+        console.log("[AuthProvider] Token validated, user authenticated:", profile);
+
         setState({
           status: "authenticated",
           user: profile as UserProfile,
           token,
         });
-      } catch {
+      } catch (error) {
+        console.error("[AuthProvider] Error during initialization:", error);
         await deleteToken();
         setState({ status: "unauthenticated" });
       }

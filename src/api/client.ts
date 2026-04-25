@@ -3,6 +3,8 @@ import * as SecureStore from "expo-secure-store";
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
 const TOKEN_KEY = "syndic_token";
 
+console.log("[API Client] BASE_URL:", BASE_URL || "(EMPTY - check EXPO_PUBLIC_API_URL)");
+
 // ─── Token storage ──────────────────────────────────────────────────────────
 
 export async function saveToken(token: string) {
@@ -40,18 +42,26 @@ async function request<T>(
   }
 
   const headers = await buildHeaders();
-  const res = await fetch(url.toString(), {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  console.log(`[API] ${method} ${url.toString()}`);
 
-  if (!res.ok) {
-    const errorText = await res.text().catch(() => "");
-    throw new ApiError(res.status, errorText);
+  try {
+    const res = await fetch(url.toString(), {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => "");
+      console.error(`[API] Error ${res.status}:`, errorText);
+      throw new ApiError(res.status, errorText);
+    }
+
+    return res.json() as Promise<T>;
+  } catch (error) {
+    console.error(`[API] Request failed:`, error);
+    throw error;
   }
-
-  return res.json() as Promise<T>;
 }
 
 export class ApiError extends Error {
