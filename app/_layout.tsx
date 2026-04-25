@@ -54,7 +54,7 @@ function RouteGuard() {
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.background }}>
         <ActivityIndicator size="large" color={Colors.primary} />
         <Text style={{ marginTop: 20, color: Colors.textSecondary, fontSize: 12 }}>
-          Initializing app...
+          Step 4/5 - Loading...
         </Text>
       </View>
     );
@@ -96,13 +96,17 @@ function RouteGuard() {
     );
   }
 
+  Alert.alert("Step 5/5", "Ready to render\nState: " + state.status + "\nSegment: " + segments[0]);
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <Slot />
-      {/* Debug info at bottom */}
-      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "rgba(0,0,0,0.8)", padding: 8 }}>
-        <Text style={{ color: "#fff", fontSize: 10, fontFamily: "monospace" }}>
-          Status: {state.status}
+      {/* Debug info overlay */}
+      <View style={{ position: "absolute", top: 40, left: 0, right: 0, backgroundColor: "rgba(0,0,0,0.9)", padding: 12 }}>
+        <Text style={{ color: "#fff", fontSize: 10, fontFamily: "monospace", lineHeight: 14 }}>
+          DEBUG{"\n"}
+          Status: {state.status}{"\n"}
+          Segment: {segments[0] || "root"}
         </Text>
       </View>
     </View>
