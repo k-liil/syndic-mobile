@@ -52,7 +52,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ]);
         console.log("[AuthProvider] fetchMe() success:", JSON.stringify(profile));
 
-        const orgs = await fetchOrganizations();
+        const orgs = await fetchOrganizations().catch((e) => {
+          console.warn("[AuthProvider] fetchOrganizations failed:", e);
+          return [] as { id: string; name: string; logoUrl: string | null }[];
+        });
         console.log("[AuthProvider] orgs count:", orgs.length);
 
         let selectedOrg: OrgInfo | null = null;
@@ -90,7 +93,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await login(email, password);
     await saveToken(res.token);
 
-    const orgs = await fetchOrganizations();
+    const orgs = await fetchOrganizations().catch((e) => {
+      console.warn("[signIn] fetchOrganizations failed:", e);
+      return [] as { id: string; name: string; logoUrl: string | null }[];
+    });
 
     let selectedOrg: OrgInfo | null = null;
     if (orgs.length === 1) {
