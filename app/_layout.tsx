@@ -41,13 +41,13 @@ function RootNavigator() {
       }
 
       if (inLoginScreen) {
-        router.replace("/(tabs)");
+        router.replace("/_tabs");
         return;
       }
 
       // Allow staying on select-org if multi-org, otherwise push back to tabs
       if (inSelectOrg && !hasMultipleOrgs) {
-        router.replace("/(tabs)");
+        router.replace("/_tabs");
       }
     }
   }, [state.status, (state as any).selectedOrg?.id, segments]);
@@ -57,7 +57,7 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="login" />
         <Stack.Screen name="select-org" />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="_tabs" />
         <Stack.Screen name="reclamations" />
       </Stack>
       <DebugPanel />

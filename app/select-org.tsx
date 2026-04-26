@@ -21,7 +21,7 @@ export default function SelectOrgScreen() {
 
   async function handleSelect(org: OrgInfo) {
     await selectOrg(org);
-    router.replace("/(tabs)");
+    router.replace("/_tabs");
   }
 
   return (
