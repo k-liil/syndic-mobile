@@ -2,11 +2,11 @@ import * as SecureStore from "expo-secure-store";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
 const TOKEN_KEY = "syndic_token";
+const ORG_KEY = "syndic_org_id";
 
 console.log("[API Client] BASE_URL:", BASE_URL || "(EMPTY - check EXPO_PUBLIC_API_URL)");
-console.log("[API Client] EXPO_PUBLIC_API_URL env:", process.env.EXPO_PUBLIC_API_URL ?? "(undefined)");
 
-// ─── Token storage ──────────────────────────────────────────────────────────
+// ─── Token & org storage ─────────────────────────────────────────────────────
 
 export async function saveToken(token: string) {
   await SecureStore.setItemAsync(TOKEN_KEY, token);
@@ -20,14 +20,34 @@ export async function deleteToken() {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
 }
 
+export async function saveOrgId(orgId: string) {
+  await SecureStore.setItemAsync(ORG_KEY, orgId);
+  _selectedOrgId = orgId;
+}
+
+export async function getStoredOrgId(): Promise<string | null> {
+  return SecureStore.getItemAsync(ORG_KEY);
+}
+
+export async function deleteOrgId() {
+  await SecureStore.deleteItemAsync(ORG_KEY);
+  _selectedOrgId = null;
+}
+
+// Module-level selected org injected into all requests
+let _selectedOrgId: string | null = null;
+
+export function setSelectedOrgId(id: string | null) {
+  _selectedOrgId = id;
+}
+
 // ─── HTTP helpers ────────────────────────────────────────────────────────────
 
-async function buildHeaders(extra?: Record<string, string>): Promise<Record<string, string>> {
+async function buildHeaders(): Promise<Record<string, string>> {
   const token = await getStoredToken();
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...extra,
   };
 }
 
@@ -35,11 +55,12 @@ async function request<T>(
   method: string,
   path: string,
   body?: unknown,
-  params?: Record<string, string>
+  extraParams?: Record<string, string>
 ): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`);
-  if (params) {
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  if (_selectedOrgId) url.searchParams.set("orgId", _selectedOrgId);
+  if (extraParams) {
+    Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
   }
 
   const headers = await buildHeaders();
@@ -84,6 +105,7 @@ export type LoginResponse = {
     role: string;
     organizationId: string | null;
     organizationName: string | null;
+    orgLogoUrl: string | null;
     ownerId: string | null;
     unitId: string | null;
     unitRef: string | null;
@@ -113,10 +135,20 @@ export async function fetchMe() {
     role: string;
     organizationId: string | null;
     organizationName: string | null;
+    orgLogoUrl: string | null;
     ownerId: string | null;
     unitId: string | null;
     unitRef: string | null;
   }>("GET", "/api/mobile/me");
+}
+
+// ─── Organizations ───────────────────────────────────────────────────────────
+
+export async function fetchOrganizations() {
+  return request<{ id: string; name: string; logoUrl: string | null }[]>(
+    "GET",
+    "/api/mobile/organizations"
+  );
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
@@ -159,6 +191,8 @@ export async function addClaimComment(claimId: string, content: string) {
 export async function updateClaimStatus(claimId: string, status: string) {
   return request<{ id: string }>("PATCH", "/api/claims", { id: claimId, status });
 }
+
+// ─── Admin ───────────────────────────────────────────────────────────────────
 
 export async function fetchOwnersSummary() {
   return request<unknown[]>("GET", "/api/mobile/owners-summary");

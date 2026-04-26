@@ -1,17 +1,29 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { deleteToken, fetchMe, getStoredToken, login, saveToken } from "@/api/client";
-import type { UserProfile } from "@/types";
+import {
+  deleteToken,
+  deleteOrgId,
+  fetchMe,
+  fetchOrganizations,
+  getStoredToken,
+  getStoredOrgId,
+  login,
+  saveToken,
+  saveOrgId,
+  setSelectedOrgId,
+} from "@/api/client";
+import type { OrgInfo, UserProfile } from "@/types";
 
 type AuthState =
   | { status: "loading" }
   | { status: "unauthenticated" }
-  | { status: "authenticated"; user: UserProfile; token: string }
+  | { status: "authenticated"; user: UserProfile; token: string; selectedOrg: OrgInfo | null; orgs: OrgInfo[] }
   | { status: "error"; error: Error };
 
 type AuthContextValue = {
   state: AuthState;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  selectOrg: (org: OrgInfo) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -26,30 +38,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     void (async () => {
       try {
-        console.log("[AuthProvider] Initializing...");
         const token = await getStoredToken();
-        console.log("[AuthProvider] Token retrieved:", !!token, token ? "(has value)" : "(null)");
+        console.log("[AuthProvider] Token retrieved:", !!token);
 
         if (!token) {
-          console.log("[AuthProvider] No token → unauthenticated");
           setState({ status: "unauthenticated" });
           return;
         }
 
-        console.log("[AuthProvider] Token found → calling fetchMe()...");
-        const profile = await fetchMe();
+        const [profile, storedOrgId] = await Promise.all([
+          fetchMe(),
+          getStoredOrgId(),
+        ]);
         console.log("[AuthProvider] fetchMe() success:", JSON.stringify(profile));
 
-        setState({ status: "authenticated", user: profile as UserProfile, token });
-        console.log("[AuthProvider] State → authenticated");
+        const orgs = await fetchOrganizations();
+        console.log("[AuthProvider] orgs count:", orgs.length);
+
+        let selectedOrg: OrgInfo | null = null;
+
+        if (orgs.length === 1) {
+          selectedOrg = orgs[0];
+        } else if (storedOrgId) {
+          selectedOrg = orgs.find((o) => o.id === storedOrgId) ?? null;
+        }
+
+        if (selectedOrg) {
+          setSelectedOrgId(selectedOrg.id);
+        }
+
+        setState({
+          status: "authenticated",
+          user: profile as UserProfile,
+          token,
+          selectedOrg,
+          orgs,
+        });
+        console.log("[AuthProvider] State → authenticated, selectedOrg:", selectedOrg?.name ?? "none");
       } catch (error) {
         console.error("[AuthProvider] Error:", String(error));
-        console.error("[AuthProvider] Error stack:", error instanceof Error ? error.stack : "no stack");
         const err = error instanceof Error ? error : new Error(String(error));
         setState({ status: "error", error: err });
-        console.log("[AuthProvider] State → error:", err.message);
         await deleteToken();
-        console.log("[AuthProvider] Token deleted after error");
+        await deleteOrgId();
       }
     })();
   }, []);
@@ -57,20 +88,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = useCallback(async (email: string, password: string) => {
     const res = await login(email, password);
     await saveToken(res.token);
+
+    const orgs = await fetchOrganizations();
+
+    let selectedOrg: OrgInfo | null = null;
+    if (orgs.length === 1) {
+      selectedOrg = orgs[0];
+      await saveOrgId(orgs[0].id);
+    }
+
+    if (selectedOrg) setSelectedOrgId(selectedOrg.id);
+
     setState({
       status: "authenticated",
       user: res.user as UserProfile,
       token: res.token,
+      selectedOrg,
+      orgs,
     });
   }, []);
 
   const signOut = useCallback(async () => {
     await deleteToken();
+    await deleteOrgId();
+    setSelectedOrgId(null);
     setState({ status: "unauthenticated" });
   }, []);
 
+  const selectOrg = useCallback(async (org: OrgInfo) => {
+    await saveOrgId(org.id);
+    setSelectedOrgId(org.id);
+    setState((prev) => {
+      if (prev.status !== "authenticated") return prev;
+      return { ...prev, selectedOrg: org };
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ state, signIn, signOut }}>
+    <AuthContext.Provider value={{ state, signIn, signOut, selectOrg }}>
       {children}
     </AuthContext.Provider>
   );

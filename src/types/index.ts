@@ -1,3 +1,9 @@
+export type OrgInfo = {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+};
+
 export type UserProfile = {
   id: string;
   email: string;
@@ -5,6 +11,7 @@ export type UserProfile = {
   role: string;
   organizationId: string | null;
   organizationName: string | null;
+  orgLogoUrl: string | null;
   ownerId: string | null;
   unitId: string | null;
   unitRef: string | null;

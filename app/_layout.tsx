@@ -6,11 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 console.log("[Layout] Module loaded");
-SplashScreen.preventAutoHideAsync().then(() => {
-  console.log("[Layout] SplashScreen.preventAutoHideAsync OK");
-}).catch((e) => {
-  console.warn("[Layout] SplashScreen.preventAutoHideAsync failed:", e);
-});
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
   const { state } = useAuth();
@@ -20,39 +16,37 @@ function RootNavigator() {
   console.log("[RootNavigator] render — status:", state.status, "| segments:", JSON.stringify(segments));
 
   useEffect(() => {
-    console.log("[RootNavigator] useEffect — status:", state.status, "| segments:", JSON.stringify(segments));
+    if (state.status === "loading") return;
 
-    if (state.status === "loading") {
-      console.log("[RootNavigator] Still loading, waiting...");
+    void SplashScreen.hideAsync().catch(() => {});
+
+    const inLoginScreen = segments[0] === "login";
+    const inSelectOrg = segments[0] === "select-org";
+    const isAuthenticated = state.status === "authenticated";
+
+    if (!isAuthenticated && !inLoginScreen) {
+      router.replace("/login");
       return;
     }
 
-    console.log("[RootNavigator] Auth resolved, hiding splash screen...");
-    void SplashScreen.hideAsync().then(() => {
-      console.log("[RootNavigator] SplashScreen hidden");
-    }).catch((e) => {
-      console.warn("[RootNavigator] SplashScreen.hideAsync failed:", e);
-    });
+    if (isAuthenticated) {
+      const needsOrgSelection = state.orgs.length > 1 && state.selectedOrg === null;
 
-    const inLoginScreen = segments[0] === "login";
-    const isAuthenticated = state.status === "authenticated";
+      if (needsOrgSelection && !inSelectOrg) {
+        router.replace("/select-org");
+        return;
+      }
 
-    console.log("[RootNavigator] inLoginScreen:", inLoginScreen, "| isAuthenticated:", isAuthenticated);
-
-    if (!isAuthenticated && !inLoginScreen) {
-      console.log("[RootNavigator] → redirect to /login");
-      router.replace("/login");
-    } else if (isAuthenticated && inLoginScreen) {
-      console.log("[RootNavigator] → redirect to /(tabs)");
-      router.replace("/(tabs)");
-    } else {
-      console.log("[RootNavigator] → no redirect needed");
+      if (!needsOrgSelection && (inLoginScreen || inSelectOrg)) {
+        router.replace("/(tabs)");
+      }
     }
-  }, [state.status, segments]);
+  }, [state.status, (state as any).selectedOrg?.id, segments]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="login" />
+      <Stack.Screen name="select-org" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="reclamations" />
     </Stack>

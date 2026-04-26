@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -8,7 +10,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth, useUser } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/contexts/AuthContext";
 import { fetchDashboard } from "@/api/client";
 import { KPICard } from "@/components/KPICard";
 import { Colors } from "@/constants/colors";
@@ -54,6 +57,9 @@ export default function DashboardScreen() {
     );
   }
   const user = state.user;
+  const selectedOrg = state.selectedOrg;
+  const hasMultipleOrgs = state.orgs.length > 1;
+  const router = useRouter();
   const [data, setData] = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,7 +101,7 @@ export default function DashboardScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>Bonjour,</Text>
             <Text style={styles.username}>
               {user.name?.split(" ")[0] ?? user.email}
@@ -107,6 +113,32 @@ export default function DashboardScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Org banner */}
+        {selectedOrg ? (
+          <Pressable
+            style={styles.orgBanner}
+            onPress={() => hasMultipleOrgs ? router.push("/select-org") : undefined}
+          >
+            {selectedOrg.logoUrl ? (
+              <Image
+                source={{ uri: selectedOrg.logoUrl }}
+                style={styles.orgLogo}
+                resizeMode="contain"
+              />
+            ) : (
+              <View style={styles.orgInitialWrap}>
+                <Text style={styles.orgInitial}>
+                  {selectedOrg.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <Text style={styles.orgName} numberOfLines={1}>{selectedOrg.name}</Text>
+            {hasMultipleOrgs ? (
+              <Ionicons name="swap-horizontal-outline" size={16} color={Colors.primary} />
+            ) : null}
+          </Pressable>
+        ) : null}
 
         {/* Year badge */}
         <View style={styles.yearBadge}>
@@ -238,4 +270,40 @@ const styles = StyleSheet.create({
   errorText: { color: Colors.dangerText, fontSize: 14 },
   logoutRow: { marginTop: 32, alignItems: "center" },
   logoutLink: { color: Colors.danger, fontSize: 14, fontWeight: "600" },
+  orgBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  orgLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+  },
+  orgInitialWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  orgInitial: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  orgName: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    color: Colors.text,
+  },
 });
