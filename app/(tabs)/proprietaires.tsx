@@ -28,6 +28,8 @@ export default function ProprietairesScreen() {
   const { state } = useAuth();
   const selectedOrgId = state.status === "authenticated" ? state.selectedOrg?.id : null;
 
+  console.log("[Proprietaires] render - selectedOrgId:", selectedOrgId);
+
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,8 @@ export default function ProprietairesScreen() {
   }, [selectedOrgId]);
 
   useEffect(() => {
-    console.log("[Proprietaires] selectedOrg changed to:", selectedOrgId);
+    console.log("[Proprietaires] useEffect triggered - selectedOrgId:", selectedOrgId);
+    setLoading(true);
     void load();
   }, [load, selectedOrgId]);
 

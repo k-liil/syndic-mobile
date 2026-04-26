@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
+  FlatList,
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -105,13 +105,16 @@ export function DebugPanel() {
             </Pressable>
           </View>
 
-          <ScrollView style={styles.logsContainer} showsVerticalScrollIndicator={true}>
-            {displayLogs.length === 0 ? (
+          {displayLogs.length === 0 ? (
+            <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>Aucun log pour le moment...</Text>
-            ) : (
-              displayLogs.map((log) => (
+            </View>
+          ) : (
+            <FlatList
+              data={displayLogs}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item: log }) => (
                 <View
-                  key={log.id}
                   style={[
                     styles.logEntry,
                     log.level === "error" && styles.logError,
@@ -121,10 +124,14 @@ export function DebugPanel() {
                   <Text style={styles.logTime}>{log.timestamp}</Text>
                   <Text style={styles.logMessage}>{log.message}</Text>
                 </View>
-              ))
-            )}
-            <View style={{ height: 20 }} />
-          </ScrollView>
+              )}
+              style={styles.logsContainer}
+              showsVerticalScrollIndicator={true}
+              scrollEnabled={true}
+              onEndReachedThreshold={0.1}
+              ListFooterComponent={<View style={{ height: 20 }} />}
+            />
+          )}
 
           <Pressable
             style={styles.clearButton}
@@ -181,10 +188,14 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   emptyText: {
     textAlign: "center",
     color: Colors.textMuted,
-    marginTop: 40,
     fontSize: 14,
   },
   logEntry: {
