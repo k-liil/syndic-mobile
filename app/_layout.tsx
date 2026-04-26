@@ -1,23 +1,43 @@
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { View, Text, Alert } from "react-native";
+import { Colors } from "@/constants/colors";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-Alert.alert("DEBUG", "App started successfully");
-
-function SimpleScreen() {
+function RootNavigator() {
   const { state } = useAuth();
+  const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    if (state.status === "loading") return;
+
+    const inLoginScreen = segments[0] === "login";
+    const isAuthenticated = state.status === "authenticated";
+
+    if (!isAuthenticated && !inLoginScreen) {
+      router.replace("/login");
+    } else if (isAuthenticated && inLoginScreen) {
+      router.replace("/(tabs)");
+    }
+  }, [state.status, segments]);
+
+  if (state.status === "loading") {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.background }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f8fafc", justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold" }}>Syndicly Mobile</Text>
-      <Text style={{ fontSize: 14, marginTop: 20 }}>Status: {state.status}</Text>
-      {state.status === "error" && (
-        <Text style={{ fontSize: 12, marginTop: 10, color: "red" }}>
-          Error: {state.error?.message}
-        </Text>
-      )}
-    </View>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="reclamations" />
+    </Stack>
   );
 }
 
@@ -26,7 +46,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <SimpleScreen />
+          <RootNavigator />
         </AuthProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
