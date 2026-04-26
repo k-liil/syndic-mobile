@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { DebugPanel, useDebugLogs } from "@/components/DebugPanel";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -9,6 +10,7 @@ console.log("[Layout] Module loaded");
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
+  useDebugLogs();
   const { state } = useAuth();
   const router = useRouter();
   const segments = useSegments();
@@ -51,12 +53,15 @@ function RootNavigator() {
   }, [state.status, (state as any).selectedOrg?.id, segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="login" />
-      <Stack.Screen name="select-org" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="reclamations" />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="select-org" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="reclamations" />
+      </Stack>
+      <DebugPanel />
+    </>
   );
 }
 
