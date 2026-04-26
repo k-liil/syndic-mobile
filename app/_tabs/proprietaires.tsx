@@ -40,14 +40,21 @@ export default function ProprietairesScreen() {
 
   const load = useCallback(async () => {
     try {
-      console.log("[Proprietaires] load() called for orgId:", selectedOrgId);
+      console.log("[Proprietaires] *** LOADING DATA ***");
+      console.log("[Proprietaires]   orgId:", selectedOrgId);
+      console.log("[Proprietaires]   orgName:", selectedOrgName);
       setError(null);
       const data = await fetchOwnersSummary();
-      console.log("[Proprietaires] fetchOwnersSummary returned", (data as OwnerSummary[]).length, "owners");
-      if ((data as OwnerSummary[]).length > 0) {
-        console.log("[Proprietaires] First owner:", JSON.stringify((data as OwnerSummary[])[0]));
+      const count = (data as OwnerSummary[]).length;
+      console.log("[Proprietaires] *** DATA RECEIVED ***");
+      console.log("[Proprietaires]   Total owners:", count);
+      if (count > 0) {
+        const first = (data as OwnerSummary[])[0];
+        console.log("[Proprietaires]   First owner:", first.name, "(ID:", first.id + ")");
+        console.log("[Proprietaires]   Last owner:", (data as OwnerSummary[])[count - 1].name);
       }
       setOwners(data as OwnerSummary[]);
+      console.log("[Proprietaires] *** DATA SET IN STATE ***");
     } catch (error) {
       console.error("[Proprietaires] fetchOwnersSummary error:", error);
       setError("Impossible de charger les copropriétaires.");
@@ -55,19 +62,30 @@ export default function ProprietairesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedOrgId]);
+  }, [selectedOrgId, selectedOrgName]);
 
   // Trigger load whenever selectedOrgId changes
   useEffect(() => {
-    console.log("[Proprietaires] useEffect: selectedOrgId changed from", lastOrgId, "to", selectedOrgId);
+    console.log("[Proprietaires] ========== useEffect TRIGGERED ==========");
+    console.log("[Proprietaires]   selectedOrgId:", selectedOrgId);
+    console.log("[Proprietaires]   selectedOrgName:", selectedOrgName);
+    console.log("[Proprietaires]   lastOrgId:", lastOrgId);
+    console.log("[Proprietaires]   Are they equal?", selectedOrgId === lastOrgId);
+
     if (selectedOrgId !== lastOrgId) {
-      console.log("[Proprietaires] Org changed, resetting and loading...");
+      console.log("[Proprietaires] *** DETECTED ORG CHANGE ***");
+      console.log("[Proprietaires]   From: " + lastOrgId);
+      console.log("[Proprietaires]   To:   " + selectedOrgId);
+      console.log("[Proprietaires] Clearing owners list...");
       setLastOrgId(selectedOrgId);
       setLoading(true);
       setOwners([]); // Clear owners when org changes
+      console.log("[Proprietaires] Calling load()...");
       void load();
+    } else {
+      console.log("[Proprietaires] No org change detected");
     }
-  }, [selectedOrgId, lastOrgId, load]);
+  }, [selectedOrgId, lastOrgId, load, selectedOrgName]);
 
   function onRefresh() {
     setRefreshing(true);
