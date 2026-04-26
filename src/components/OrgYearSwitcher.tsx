@@ -132,13 +132,17 @@ export function OrgYearSwitcher({
                 <Text style={[styles.sectionTitle, isMultiOrg && { marginTop: 16 }]}>
                   Exercice
                 </Text>
-                <View style={styles.yearGrid}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.yearScroll}
+                >
                   {years.map((year) => (
                     <Pressable
                       key={year}
                       style={[
-                        styles.yearButton,
-                        year === currentYear && styles.yearButtonSelected,
+                        styles.yearButtonCompact,
+                        year === currentYear && styles.yearButtonCompactSelected,
                       ]}
                       onPress={() => {
                         onSelectYear(year);
@@ -147,15 +151,15 @@ export function OrgYearSwitcher({
                     >
                       <Text
                         style={[
-                          styles.yearButtonText,
-                          year === currentYear && styles.yearButtonTextSelected,
+                          styles.yearButtonCompactText,
+                          year === currentYear && styles.yearButtonCompactTextSelected,
                         ]}
                       >
                         {year}
                       </Text>
                     </Pressable>
                   ))}
-                </View>
+                </ScrollView>
               </>
             )}
           </View>
@@ -281,33 +285,30 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.text,
   },
-  yearGrid: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap",
+  yearScroll: {
+    marginVertical: 8,
   },
-  yearButton: {
-    flex: 1,
-    minWidth: 70,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+  yearButtonCompact: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 8,
   },
-  yearButtonSelected: {
+  yearButtonCompactSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  yearButtonText: {
-    fontSize: 13,
+  yearButtonCompactText: {
+    fontSize: 12,
     fontWeight: "600",
     color: Colors.text,
   },
-  yearButtonTextSelected: {
+  yearButtonCompactTextSelected: {
     color: "#fff",
   },
 });

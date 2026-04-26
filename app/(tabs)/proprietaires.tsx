@@ -37,6 +37,7 @@ export default function ProprietairesScreen() {
   const load = useCallback(async () => {
     try {
       setError(null);
+      console.log("[Proprietaires] Loading for org:", selectedOrgId);
       const data = await fetchOwnersSummary();
       console.log("[Proprietaires] fetchOwnersSummary count:", (data as OwnerSummary[]).length);
       if ((data as OwnerSummary[]).length > 0) {
@@ -50,7 +51,7 @@ export default function ProprietairesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedOrgId]);
 
   useEffect(() => {
     console.log("[Proprietaires] selectedOrg changed to:", selectedOrgId);

@@ -99,18 +99,13 @@ export function DebugPanel() {
       <Modal visible={visible} animationType="slide" onRequestClose={() => setVisible(false)}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>🐛 Debug Logs</Text>
+            <Text style={styles.title}>🐛 Debug Logs ({displayLogs.length})</Text>
             <Pressable onPress={() => setVisible(false)}>
               <Ionicons name="close" size={24} color={Colors.text} />
             </Pressable>
           </View>
 
-          <ScrollView
-            style={styles.logsContainer}
-            scrollEventThrottle={16}
-            nestedScrollEnabled={true}
-            onContentSizeChange={() => {}}
-          >
+          <ScrollView style={styles.logsContainer} showsVerticalScrollIndicator={true}>
             {displayLogs.length === 0 ? (
               <Text style={styles.emptyText}>Aucun log pour le moment...</Text>
             ) : (
@@ -128,6 +123,7 @@ export function DebugPanel() {
                 </View>
               ))
             )}
+            <View style={{ height: 20 }} />
           </ScrollView>
 
           <Pressable
