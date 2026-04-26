@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -66,9 +67,11 @@ export default function LoginScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.logoWrap}>
-              <Text style={styles.logoText}>S</Text>
-            </View>
+            <Image
+              source={require("../assets/icon.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.brand}>Syndicly</Text>
             <Text style={styles.tagline}>Espace copropietaire</Text>
           </View>
@@ -161,19 +164,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 32,
   },
-  logoWrap: {
-    width: 64,
-    height: 64,
+  logo: {
+    width: 72,
+    height: 72,
     borderRadius: 18,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: 12,
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#fff",
   },
   brand: {
     fontSize: 22,

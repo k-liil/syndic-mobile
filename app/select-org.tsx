@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,19 +16,23 @@ import type { OrgInfo } from "@/types";
 
 export default function SelectOrgScreen() {
   const { state, selectOrg, signOut } = useAuth();
+  const router = useRouter();
   const orgs: OrgInfo[] = state.status === "authenticated" ? state.orgs : [];
 
   async function handleSelect(org: OrgInfo) {
     await selectOrg(org);
+    router.replace("/(tabs)");
   }
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View style={styles.logoWrap}>
-            <Text style={styles.logoText}>S</Text>
-          </View>
+          <Image
+            source={require("../assets/icon.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Choisir une organisation</Text>
           <Text style={styles.sub}>Sélectionnez l'organisation à gérer</Text>
         </View>
@@ -74,16 +79,12 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     marginTop: 16,
   },
-  logoWrap: {
-    width: 60,
-    height: 60,
+  logo: {
+    width: 68,
+    height: 68,
     borderRadius: 16,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: 16,
   },
-  logoText: { fontSize: 28, fontWeight: "800", color: "#fff" },
   title: {
     fontSize: 22,
     fontWeight: "700",

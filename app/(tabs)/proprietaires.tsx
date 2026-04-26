@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -24,6 +25,7 @@ function fmt(n: number) {
 
 export default function ProprietairesScreen() {
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,16 @@ export default function ProprietairesScreen() {
   const totalImpaye = owners.reduce((s, o) => s + o.remainingDueNow, 0);
   const impayeCount = owners.filter((o) => o.remainingDueNow > 0).length;
 
+  const q = searchQuery.trim().toLowerCase();
+  const filtered = q
+    ? owners.filter(
+        (o) =>
+          o.name.toLowerCase().includes(q) ||
+          (o.firstName?.toLowerCase() ?? "").includes(q) ||
+          (o.primaryUnitRef?.toLowerCase() ?? "").includes(q)
+      )
+    : owners;
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -61,6 +73,18 @@ export default function ProprietairesScreen() {
         }
       >
         <Text style={styles.pageTitle}>Copropriétaires</Text>
+
+        {!loading && owners.length > 0 ? (
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Rechercher par nom ou lot…"
+            placeholderTextColor={Colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+          />
+        ) : null}
 
         {!loading && owners.length > 0 ? (
           <View style={styles.summaryRow}>
@@ -84,13 +108,15 @@ export default function ProprietairesScreen() {
           <View style={styles.errorBox}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
-        ) : owners.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>Aucun copropriétaire</Text>
+            <Text style={styles.emptyTitle}>
+              {q ? "Aucun résultat" : "Aucun copropriétaire"}
+            </Text>
           </View>
         ) : (
-          owners.map((owner) => (
+          filtered.map((owner) => (
             <View key={owner.id} style={styles.card}>
               <View style={styles.cardLeft}>
                 <View style={styles.avatar}>
@@ -136,7 +162,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: Colors.text,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  searchInput: {
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: Colors.text,
+    backgroundColor: Colors.surface,
+    marginBottom: 14,
   },
   summaryRow: {
     flexDirection: "row",

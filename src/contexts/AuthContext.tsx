@@ -52,11 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ]);
         console.log("[AuthProvider] fetchMe() success:", JSON.stringify(profile));
 
-        const orgs = await fetchOrganizations().catch((e) => {
+        let orgs = await fetchOrganizations().catch((e) => {
           console.warn("[AuthProvider] fetchOrganizations failed:", e);
           return [] as { id: string; name: string; logoUrl: string | null }[];
         });
         console.log("[AuthProvider] orgs count:", orgs.length);
+
+        if (orgs.length === 0) {
+          const p = profile as { organizationId?: string; organizationName?: string; orgLogoUrl?: string | null };
+          if (p.organizationId && p.organizationName) {
+            orgs = [{ id: p.organizationId, name: p.organizationName, logoUrl: p.orgLogoUrl ?? null }];
+          }
+        }
 
         let selectedOrg: OrgInfo | null = null;
 
@@ -93,10 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await login(email, password);
     await saveToken(res.token);
 
-    const orgs = await fetchOrganizations().catch((e) => {
+    let orgs = await fetchOrganizations().catch((e) => {
       console.warn("[signIn] fetchOrganizations failed:", e);
       return [] as { id: string; name: string; logoUrl: string | null }[];
     });
+
+    if (orgs.length === 0) {
+      const u = res.user as { organizationId?: string; organizationName?: string; orgLogoUrl?: string | null };
+      if (u.organizationId && u.organizationName) {
+        orgs = [{ id: u.organizationId, name: u.organizationName, logoUrl: u.orgLogoUrl ?? null }];
+      }
+    }
 
     let selectedOrg: OrgInfo | null = null;
     if (orgs.length === 1) {
