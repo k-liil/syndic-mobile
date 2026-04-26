@@ -1,10 +1,11 @@
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { Colors } from "@/constants/colors";
 import { Stack, useRouter, useSegments } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
+SplashScreen.preventAutoHideAsync();
 
 function RootNavigator() {
   const { state } = useAuth();
@@ -13,6 +14,8 @@ function RootNavigator() {
 
   useEffect(() => {
     if (state.status === "loading") return;
+
+    void SplashScreen.hideAsync();
 
     const inLoginScreen = segments[0] === "login";
     const isAuthenticated = state.status === "authenticated";
@@ -23,14 +26,6 @@ function RootNavigator() {
       router.replace("/(tabs)");
     }
   }, [state.status, segments]);
-
-  if (state.status === "loading") {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.background }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
