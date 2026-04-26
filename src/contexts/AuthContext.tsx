@@ -21,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // On mount: try to restore session from SecureStore
   useEffect(() => {
+    console.log("[AuthProvider] useEffect started");
+
     void (async () => {
       try {
         console.log("[AuthProvider] Initializing...");
@@ -28,8 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("[AuthProvider] Token retrieved:", !!token);
 
         if (!token) {
-          console.log("[AuthProvider] No token found, user is unauthenticated");
+          console.log("[AuthProvider] No token found, setting unauthenticated");
           setState({ status: "unauthenticated" });
+          console.log("[AuthProvider] State set to unauthenticated");
           return;
         }
 
@@ -43,10 +46,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           user: profile as UserProfile,
           token,
         });
+        console.log("[AuthProvider] State set to authenticated");
       } catch (error) {
         console.error("[AuthProvider] Error during initialization:", error);
         const err = error instanceof Error ? error : new Error(String(error));
         setState({ status: "error", error: err });
+        console.log("[AuthProvider] State set to error");
         await deleteToken();
       }
     })();
