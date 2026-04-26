@@ -21,7 +21,8 @@ type Props = {
 export function OrgSwitcher({ selectedOrg, orgs, onSelectOrg }: Props) {
   const [visible, setVisible] = useState(false);
 
-  if (!selectedOrg || orgs.length <= 1) return null;
+  if (!selectedOrg) return null;
+  const isMultiOrg = orgs.length > 1;
 
   async function handleSelect(org: OrgInfo) {
     await onSelectOrg(org);
@@ -30,7 +31,10 @@ export function OrgSwitcher({ selectedOrg, orgs, onSelectOrg }: Props) {
 
   return (
     <>
-      <Pressable style={styles.trigger} onPress={() => setVisible(true)}>
+      <Pressable
+        style={styles.trigger}
+        onPress={() => isMultiOrg && setVisible(true)}
+      >
         {selectedOrg.logoUrl ? (
           <Image
             source={{ uri: selectedOrg.logoUrl }}
@@ -49,11 +53,13 @@ export function OrgSwitcher({ selectedOrg, orgs, onSelectOrg }: Props) {
             {selectedOrg.name}
           </Text>
         </View>
-        <Ionicons name="chevron-down" size={16} color={Colors.textSecondary} />
+        {isMultiOrg && (
+          <Ionicons name="chevron-down" size={16} color={Colors.textSecondary} />
+        )}
       </Pressable>
 
       <Modal
-        visible={visible}
+        visible={visible && isMultiOrg}
         transparent
         animationType="fade"
         onRequestClose={() => setVisible(false)}

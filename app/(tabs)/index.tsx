@@ -44,6 +44,8 @@ export default function DashboardScreen() {
   console.log("[DashboardScreen] render");
   const { state, signOut, selectOrg } = useAuth();
   console.log("[DashboardScreen] auth state:", state.status);
+  console.log("[DashboardScreen] selectedOrg:", state.status === "authenticated" ? state.selectedOrg?.name : "N/A");
+  console.log("[DashboardScreen] orgs count:", state.status === "authenticated" ? state.orgs.length : 0);
 
   if (state.status !== "authenticated") {
     console.log("[DashboardScreen] not authenticated, showing spinner");
@@ -137,11 +139,12 @@ export default function DashboardScreen() {
           </View>
         ) : data ? (
           <>
+            {console.log("[DashboardScreen] Rendering data:", JSON.stringify(data))}
             <Text style={styles.sectionTitle}>Finances</Text>
 
             <KPICard
               label="Taux de recouvrement"
-              value={fmtPct(data.collectionRate ?? 0)}
+              value={data.collectionRate !== undefined ? fmtPct(data.collectionRate) : "—"}
               sub="Cotisations encaissees vs dues"
               color={
                 (data.collectionRate ?? 0) >= 80
@@ -155,16 +158,16 @@ export default function DashboardScreen() {
 
             <KPICard
               label="Solde tresorerie"
-              value={fmt(data.cashBalance ?? 0)}
-              sub={`Banque: ${fmt(data.bankBalance ?? 0)}`}
+              value={data.cashBalance !== undefined ? fmt(data.cashBalance) : "—"}
+              sub={data.bankBalance !== undefined ? `Banque: ${fmt(data.bankBalance)}` : "Banque: —"}
               color={Colors.primary}
               icon={<Ionicons name="wallet-outline" size={18} color={Colors.primary} />}
             />
 
             <KPICard
               label="Encaissements"
-              value={fmt(data.totalReceipts ?? 0)}
-              sub={`Depenses: ${fmt(data.totalPayments ?? 0)}`}
+              value={data.totalReceipts !== undefined ? fmt(data.totalReceipts) : "—"}
+              sub={data.totalPayments !== undefined ? `Depenses: ${fmt(data.totalPayments)}` : "Depenses: —"}
               color={Colors.info}
               icon={<Ionicons name="arrow-down-circle-outline" size={18} color={Colors.info} />}
             />
@@ -173,7 +176,11 @@ export default function DashboardScreen() {
 
             <KPICard
               label="Copropietaires a jour"
-              value={`${data.paidOwnersCount ?? 0} / ${data.ownersCount ?? 0}`}
+              value={
+                data.paidOwnersCount !== undefined && data.ownersCount !== undefined
+                  ? `${data.paidOwnersCount} / ${data.ownersCount}`
+                  : "— / —"
+              }
               sub={
                 (data.ownersCount ?? 0) > 0
                   ? `${Math.round(((data.paidOwnersCount ?? 0) / (data.ownersCount ?? 1)) * 100)}% ont paye`
