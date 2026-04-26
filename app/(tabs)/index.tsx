@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchDashboard } from "@/api/client";
 import { KPICard } from "@/components/KPICard";
-import { OrgSwitcher } from "@/components/OrgSwitcher";
+import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -58,11 +58,12 @@ export default function DashboardScreen() {
   }
   const user = state.user;
   const selectedOrg = state.selectedOrg;
+  const isSuperAdmin = user.role === "SUPER_ADMIN";
   const [data, setData] = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const year = new Date().getFullYear();
+  const [year, setYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     console.log("[Dashboard] selectedOrg changed to:", selectedOrg?.name ?? "null");
@@ -119,20 +120,18 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Org switcher */}
+        {/* Org & Year switcher */}
         {selectedOrg ? (
-          <OrgSwitcher
+          <OrgYearSwitcher
             selectedOrg={selectedOrg}
             orgs={state.orgs}
+            currentYear={year}
+            isSuperAdmin={isSuperAdmin}
             onSelectOrg={selectOrg}
+            onSelectYear={setYear}
           />
         ) : null}
 
-        {/* Year badge */}
-        <View style={styles.yearBadge}>
-          <Ionicons name="calendar-outline" size={14} color={Colors.primary} />
-          <Text style={styles.yearText}>Exercice {year}</Text>
-        </View>
 
         {loading && !data ? (
           <View style={styles.center}>
@@ -232,18 +231,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   avatarText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  yearBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: Colors.primaryLight,
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  yearText: { fontSize: 12, fontWeight: "600", color: Colors.primary },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "700",

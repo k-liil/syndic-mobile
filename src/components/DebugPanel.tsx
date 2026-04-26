@@ -105,7 +105,12 @@ export function DebugPanel() {
             </Pressable>
           </View>
 
-          <ScrollView style={styles.logsContainer} scrollEventThrottle={16}>
+          <ScrollView
+            style={styles.logsContainer}
+            scrollEventThrottle={16}
+            nestedScrollEnabled={true}
+            onContentSizeChange={() => {}}
+          >
             {displayLogs.length === 0 ? (
               <Text style={styles.emptyText}>Aucun log pour le moment...</Text>
             ) : (

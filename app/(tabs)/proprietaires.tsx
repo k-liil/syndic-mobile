@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@/contexts/AuthContext";
 import { fetchOwnersSummary } from "@/api/client";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +25,9 @@ function fmt(n: number) {
 }
 
 export default function ProprietairesScreen() {
+  const { state } = useAuth();
+  const selectedOrgId = state.status === "authenticated" ? state.selectedOrg?.id : null;
+
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -48,7 +52,10 @@ export default function ProprietairesScreen() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    console.log("[Proprietaires] selectedOrg changed to:", selectedOrgId);
+    void load();
+  }, [load, selectedOrgId]);
 
   function onRefresh() {
     setRefreshing(true);
