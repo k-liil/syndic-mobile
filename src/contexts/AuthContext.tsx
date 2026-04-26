@@ -63,7 +63,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           selectedOrg = orgs.find((o) => o.id === storedOrgId) ?? null;
         }
 
-        if (selectedOrg) {
+        // Only propagate orgId for multi-org users — single-org resolves from JWT
+        if (orgs.length > 1 && selectedOrg) {
           setSelectedOrgId(selectedOrg.id);
         }
 
@@ -97,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await saveOrgId(orgs[0].id);
     }
 
-    if (selectedOrg) setSelectedOrgId(selectedOrg.id);
+    if (orgs.length > 1 && selectedOrg) setSelectedOrgId(selectedOrg.id);
 
     setState({
       status: "authenticated",

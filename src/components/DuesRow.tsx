@@ -7,7 +7,7 @@ import type { DueEntry } from "@/types";
 function formatAmount(n: number) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "DZD",
+    currency: "MAD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(n);

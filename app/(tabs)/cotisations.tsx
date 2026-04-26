@@ -118,7 +118,9 @@ export default function CotisationsScreen() {
             {/* Summary cards */}
             <View style={styles.summaryRow}>
               <View style={[styles.summaryCard, { borderLeftColor: Colors.danger }]}>
-                <Text style={styles.summaryLabel}>Du maintenant</Text>
+                <Text style={styles.summaryLabel}>
+                  {`Dû au ${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long" })}`}
+                </Text>
                 <Text style={[styles.summaryAmount, { color: Colors.danger }]}>
                   {fmt(ledger.remainingDueNowTotal)}
                 </Text>
@@ -137,7 +139,7 @@ export default function CotisationsScreen() {
                 <View style={styles.sectionHeader}>
                   <Ionicons name="alert-circle" size={16} color={Colors.danger} />
                   <Text style={[styles.sectionTitle, { color: Colors.danger }]}>
-                    Charges a payer ({ledger.dueNow.length})
+                    Cotisations à payer ({ledger.dueNow.length})
                   </Text>
                 </View>
                 {ledger.dueNow.map((entry) => (
