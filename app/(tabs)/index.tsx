@@ -19,7 +19,7 @@ console.log("[DashboardScreen] module loaded");
 function fmt(n: number) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "DZD",
+    currency: "MAD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(n);

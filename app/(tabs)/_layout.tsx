@@ -1,16 +1,11 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
+import { useAuth } from "@/contexts/AuthContext";
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>["name"];
 
-function TabIcon({
-  name,
-  focused,
-}: {
-  name: IoniconsName;
-  focused: boolean;
-}) {
+function TabIcon({ name, focused }: { name: IoniconsName; focused: boolean }) {
   return (
     <Ionicons
       name={focused ? name : (`${name}-outline` as IoniconsName)}
@@ -21,6 +16,10 @@ function TabIcon({
 }
 
 export default function TabsLayout() {
+  const { state } = useAuth();
+  const isSuperAdmin =
+    state.status === "authenticated" && state.user.role === "SUPER_ADMIN";
+
   return (
     <Tabs
       screenOptions={{
@@ -45,27 +44,30 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Tableau de bord",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="bar-chart" focused={focused} />
-          ),
+          tabBarIcon: ({ focused }) => <TabIcon name="bar-chart" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="cotisations"
         options={{
           title: "Cotisations",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="wallet" focused={focused} />
-          ),
+          href: isSuperAdmin ? null : undefined,
+          tabBarIcon: ({ focused }) => <TabIcon name="wallet" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="proprietaires"
+        options={{
+          title: "Copropriétaires",
+          href: isSuperAdmin ? undefined : null,
+          tabBarIcon: ({ focused }) => <TabIcon name="people" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="reclamations"
         options={{
-          title: "Reclamations",
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name="chatbubble-ellipses" focused={focused} />
-          ),
+          title: "Réclamations",
+          tabBarIcon: ({ focused }) => <TabIcon name="chatbubble-ellipses" focused={focused} />,
         }}
       />
     </Tabs>

@@ -153,5 +153,13 @@ export async function createClaim(payload: {
 }
 
 export async function addClaimComment(claimId: string, content: string) {
-  return request<{ id: string }>("PATCH", `/api/claims/${claimId}`, { comment: content });
+  return request<{ id: string }>("PATCH", "/api/claims", { id: claimId, comment: content });
+}
+
+export async function updateClaimStatus(claimId: string, status: string) {
+  return request<{ id: string }>("PATCH", "/api/claims", { id: claimId, status });
+}
+
+export async function fetchOwnersSummary() {
+  return request<unknown[]>("GET", "/api/mobile/owners-summary");
 }

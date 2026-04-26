@@ -74,6 +74,14 @@ export type ClaimComment = {
   user?: { name?: string; email?: string } | null;
 };
 
+export type OwnerSummary = {
+  id: string;
+  name: string;
+  firstName: string | null;
+  primaryUnitRef: string | null;
+  remainingDueNow: number;
+};
+
 export type ClaimCategory =
   | "WATER"
   | "ELECTRICITY"
