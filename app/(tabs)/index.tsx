@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,10 +8,10 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchDashboard } from "@/api/client";
 import { KPICard } from "@/components/KPICard";
+import { OrgSwitcher } from "@/components/OrgSwitcher";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -44,7 +42,7 @@ type DashData = {
 
 export default function DashboardScreen() {
   console.log("[DashboardScreen] render");
-  const { state, signOut } = useAuth();
+  const { state, signOut, selectOrg } = useAuth();
   console.log("[DashboardScreen] auth state:", state.status);
 
   if (state.status !== "authenticated") {
@@ -58,8 +56,6 @@ export default function DashboardScreen() {
   }
   const user = state.user;
   const selectedOrg = state.selectedOrg;
-  const hasMultipleOrgs = state.orgs.length > 1;
-  const router = useRouter();
   const [data, setData] = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,8 +66,10 @@ export default function DashboardScreen() {
     try {
       setError(null);
       const raw = await fetchDashboard(year);
+      console.log("[Dashboard] fetchDashboard response:", JSON.stringify(raw));
       setData(raw as DashData);
-    } catch {
+    } catch (error) {
+      console.error("[Dashboard] fetchDashboard error:", error);
       setError("Impossible de charger le tableau de bord.");
     } finally {
       setLoading(false);
@@ -114,30 +112,13 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        {/* Org banner */}
+        {/* Org switcher */}
         {selectedOrg ? (
-          <Pressable
-            style={styles.orgBanner}
-            onPress={() => hasMultipleOrgs ? router.push("/select-org") : undefined}
-          >
-            {selectedOrg.logoUrl ? (
-              <Image
-                source={{ uri: selectedOrg.logoUrl }}
-                style={styles.orgLogo}
-                resizeMode="contain"
-              />
-            ) : (
-              <View style={styles.orgInitialWrap}>
-                <Text style={styles.orgInitial}>
-                  {selectedOrg.name.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-            <Text style={styles.orgName} numberOfLines={1}>{selectedOrg.name}</Text>
-            {hasMultipleOrgs ? (
-              <Ionicons name="swap-horizontal-outline" size={16} color={Colors.primary} />
-            ) : null}
-          </Pressable>
+          <OrgSwitcher
+            selectedOrg={selectedOrg}
+            orgs={state.orgs}
+            onSelectOrg={selectOrg}
+          />
         ) : null}
 
         {/* Year badge */}
@@ -221,7 +202,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: 16, paddingBottom: 40 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -270,40 +251,4 @@ const styles = StyleSheet.create({
   errorText: { color: Colors.dangerText, fontSize: 14 },
   logoutRow: { marginTop: 32, alignItems: "center" },
   logoutLink: { color: Colors.danger, fontSize: 14, fontWeight: "600" },
-  orgBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  orgLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-  },
-  orgInitialWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: Colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orgInitial: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: Colors.primary,
-  },
-  orgName: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.text,
-  },
 });

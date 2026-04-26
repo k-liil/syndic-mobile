@@ -34,8 +34,13 @@ export default function ProprietairesScreen() {
     try {
       setError(null);
       const data = await fetchOwnersSummary();
+      console.log("[Proprietaires] fetchOwnersSummary count:", (data as OwnerSummary[]).length);
+      if ((data as OwnerSummary[]).length > 0) {
+        console.log("[Proprietaires] First owner:", JSON.stringify((data as OwnerSummary[])[0]));
+      }
       setOwners(data as OwnerSummary[]);
-    } catch {
+    } catch (error) {
+      console.error("[Proprietaires] fetchOwnersSummary error:", error);
       setError("Impossible de charger les copropriétaires.");
     } finally {
       setLoading(false);
@@ -56,12 +61,19 @@ export default function ProprietairesScreen() {
   const q = searchQuery.trim().toLowerCase();
   const filtered = q
     ? owners.filter(
-        (o) =>
-          o.name.toLowerCase().includes(q) ||
-          (o.firstName?.toLowerCase() ?? "").includes(q) ||
-          (o.primaryUnitRef?.toLowerCase() ?? "").includes(q)
+        (o) => {
+          const nameMatch = o.name.toLowerCase().includes(q);
+          const firstNameMatch = (o.firstName?.toLowerCase() ?? "").includes(q);
+          const refMatch = (o.primaryUnitRef?.toLowerCase() ?? "").includes(q);
+          const match = nameMatch || firstNameMatch || refMatch;
+          if (match) {
+            console.log("[Proprietaires] Search match:", { name: o.name, ref: o.primaryUnitRef, query: q });
+          }
+          return match;
+        }
       )
     : owners;
+  console.log("[Proprietaires] Search:", { query: q, totalOwners: owners.length, filtered: filtered.length });
 
   return (
     <SafeAreaView style={styles.safe}>

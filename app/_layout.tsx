@@ -30,14 +30,21 @@ function RootNavigator() {
     }
 
     if (isAuthenticated) {
-      const needsOrgSelection = state.orgs.length > 1 && state.selectedOrg === null;
+      const hasMultipleOrgs = state.orgs.length > 1;
+      const needsOrgSelection = hasMultipleOrgs && state.selectedOrg === null;
 
       if (needsOrgSelection && !inSelectOrg) {
         router.replace("/select-org");
         return;
       }
 
-      if (!needsOrgSelection && (inLoginScreen || inSelectOrg)) {
+      if (inLoginScreen) {
+        router.replace("/(tabs)");
+        return;
+      }
+
+      // Allow staying on select-org if multi-org, otherwise push back to tabs
+      if (inSelectOrg && !hasMultipleOrgs) {
         router.replace("/(tabs)");
       }
     }
