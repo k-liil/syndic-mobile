@@ -137,12 +137,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const selectOrg = useCallback(async (org: OrgInfo) => {
-    await saveOrgId(org.id);
-    setSelectedOrgId(org.id);
-    setState((prev) => {
-      if (prev.status !== "authenticated") return prev;
-      return { ...prev, selectedOrg: org };
-    });
+    console.log("[AuthContext] selectOrg called with:", org.name, org.id);
+    try {
+      await saveOrgId(org.id);
+      console.log("[AuthContext] saveOrgId done");
+      setSelectedOrgId(org.id);
+      console.log("[AuthContext] setSelectedOrgId done");
+      setState((prev) => {
+        console.log("[AuthContext] setState called, prev status:", prev.status);
+        if (prev.status !== "authenticated") return prev;
+        const newState = { ...prev, selectedOrg: org };
+        console.log("[AuthContext] New state set with org:", org.name);
+        return newState;
+      });
+    } catch (error) {
+      console.error("[AuthContext] selectOrg error:", error);
+    }
   }, []);
 
   return (

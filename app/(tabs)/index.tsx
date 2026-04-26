@@ -64,6 +64,11 @@ export default function DashboardScreen() {
   const [error, setError] = useState<string | null>(null);
   const year = new Date().getFullYear();
 
+  useEffect(() => {
+    console.log("[Dashboard] selectedOrg changed to:", selectedOrg?.name ?? "null");
+    void load();
+  }, [selectedOrg?.id]);
+
   const load = useCallback(async () => {
     try {
       setError(null);

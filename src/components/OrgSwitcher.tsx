@@ -25,8 +25,14 @@ export function OrgSwitcher({ selectedOrg, orgs, onSelectOrg }: Props) {
   const isMultiOrg = orgs.length > 1;
 
   async function handleSelect(org: OrgInfo) {
-    await onSelectOrg(org);
-    setVisible(false);
+    console.log("[OrgSwitcher] Changing to org:", org.name, org.id);
+    try {
+      await onSelectOrg(org);
+      console.log("[OrgSwitcher] Org changed successfully");
+      setVisible(false);
+    } catch (error) {
+      console.error("[OrgSwitcher] Failed to change org:", error);
+    }
   }
 
   return (
