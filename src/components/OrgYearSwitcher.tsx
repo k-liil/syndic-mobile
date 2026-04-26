@@ -35,7 +35,13 @@ export function OrgYearSwitcher({
   const isMultiOrg = orgs.length > 1;
 
   async function handleSelectOrg(org: OrgInfo) {
-    await onSelectOrg(org);
+    console.log("[OrgYearSwitcher] handleSelectOrg called with:", org.name, org.id);
+    try {
+      await onSelectOrg(org);
+      console.log("[OrgYearSwitcher] selectOrg completed successfully");
+    } catch (error) {
+      console.error("[OrgYearSwitcher] selectOrg failed:", error);
+    }
   }
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
@@ -95,7 +101,10 @@ export function OrgYearSwitcher({
                         styles.item,
                         org.id === selectedOrg.id && styles.itemSelected,
                       ]}
-                      onPress={() => handleSelectOrg(org)}
+                      onPress={() => {
+                        console.log("[OrgYearSwitcher] Org item pressed:", org.name);
+                        void handleSelectOrg(org);
+                      }}
                     >
                       {org.logoUrl ? (
                         <Image
