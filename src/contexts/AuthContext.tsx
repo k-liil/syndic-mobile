@@ -19,7 +19,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>({ status: "loading" });
 
-  // On mount: try to restore session from SecureStore
+  console.log("[AuthProvider] render — status:", state.status);
+
   useEffect(() => {
     console.log("[AuthProvider] useEffect started");
 
@@ -27,32 +28,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("[AuthProvider] Initializing...");
         const token = await getStoredToken();
-        console.log("[AuthProvider] Token retrieved:", !!token);
+        console.log("[AuthProvider] Token retrieved:", !!token, token ? "(has value)" : "(null)");
 
         if (!token) {
-          console.log("[AuthProvider] No token found, setting unauthenticated");
+          console.log("[AuthProvider] No token → unauthenticated");
           setState({ status: "unauthenticated" });
-          console.log("[AuthProvider] State set to unauthenticated");
           return;
         }
 
-        // Validate token by calling /api/mobile/me
-        console.log("[AuthProvider] Validating token with API...");
+        console.log("[AuthProvider] Token found → calling fetchMe()...");
         const profile = await fetchMe();
-        console.log("[AuthProvider] Token validated, user authenticated:", profile);
+        console.log("[AuthProvider] fetchMe() success:", JSON.stringify(profile));
 
-        setState({
-          status: "authenticated",
-          user: profile as UserProfile,
-          token,
-        });
-        console.log("[AuthProvider] State set to authenticated");
+        setState({ status: "authenticated", user: profile as UserProfile, token });
+        console.log("[AuthProvider] State → authenticated");
       } catch (error) {
-        console.error("[AuthProvider] Error during initialization:", error);
+        console.error("[AuthProvider] Error:", String(error));
+        console.error("[AuthProvider] Error stack:", error instanceof Error ? error.stack : "no stack");
         const err = error instanceof Error ? error : new Error(String(error));
         setState({ status: "error", error: err });
-        console.log("[AuthProvider] State set to error");
+        console.log("[AuthProvider] State → error:", err.message);
         await deleteToken();
+        console.log("[AuthProvider] Token deleted after error");
       }
     })();
   }, []);

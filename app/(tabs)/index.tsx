@@ -14,6 +14,8 @@ import { KPICard } from "@/components/KPICard";
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 
+console.log("[DashboardScreen] module loaded");
+
 function fmt(n: number) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
@@ -38,8 +40,20 @@ type DashData = {
 };
 
 export default function DashboardScreen() {
-  const user = useUser();
-  const { signOut } = useAuth();
+  console.log("[DashboardScreen] render");
+  const { state, signOut } = useAuth();
+  console.log("[DashboardScreen] auth state:", state.status);
+
+  if (state.status !== "authenticated") {
+    console.log("[DashboardScreen] not authenticated, showing spinner");
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.background }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+        <Text style={{ marginTop: 12, color: Colors.textSecondary }}>Chargement... ({state.status})</Text>
+      </View>
+    );
+  }
+  const user = state.user;
   const [data, setData] = useState<DashData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

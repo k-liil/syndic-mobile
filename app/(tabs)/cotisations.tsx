@@ -8,7 +8,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useUser } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+
+console.log("[CotisationsScreen] module loaded");
 import { fetchOwnerLedger } from "@/api/client";
 import { DuesRow } from "@/components/DuesRow";
 import { Colors } from "@/constants/colors";
@@ -36,14 +38,18 @@ function mapEntry(raw: Record<string, unknown>): DueEntry {
 }
 
 export default function CotisationsScreen() {
-  const user = useUser();
+  console.log("[CotisationsScreen] render");
+  const { state } = useAuth();
+  console.log("[CotisationsScreen] auth state:", state.status);
+
+  const user = state.status === "authenticated" ? state.user : null;
   const [ledger, setLedger] = useState<OwnerLedger | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!user.ownerId) {
+    if (!user?.ownerId) {
       setError("Aucun profil copropietaire associe a votre compte.");
       setLoading(false);
       return;
@@ -71,7 +77,7 @@ export default function CotisationsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user.ownerId]);
+  }, [user?.ownerId]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -95,7 +101,7 @@ export default function CotisationsScreen() {
       >
         {/* Title */}
         <Text style={styles.pageTitle}>Mes Cotisations</Text>
-        {user.unitRef ? (
+        {user?.unitRef ? (
           <Text style={styles.unitLabel}>Lot {user.unitRef}</Text>
         ) : null}
 

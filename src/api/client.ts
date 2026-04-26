@@ -4,6 +4,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
 const TOKEN_KEY = "syndic_token";
 
 console.log("[API Client] BASE_URL:", BASE_URL || "(EMPTY - check EXPO_PUBLIC_API_URL)");
+console.log("[API Client] EXPO_PUBLIC_API_URL env:", process.env.EXPO_PUBLIC_API_URL ?? "(undefined)");
 
 // ─── Token storage ──────────────────────────────────────────────────────────
 

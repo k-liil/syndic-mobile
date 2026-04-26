@@ -25,6 +25,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default function LoginScreen() {
+  console.log("[LoginScreen] render");
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

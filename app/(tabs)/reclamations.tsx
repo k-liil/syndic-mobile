@@ -24,6 +24,7 @@ const FILTERS: { label: string; value: ClaimStatus | "ALL" }[] = [
 ];
 
 export default function ReclamationsScreen() {
+  console.log("[ReclamationsScreen] render");
   const router = useRouter();
   const [claims, setClaims] = useState<Claim[]>([]);
   const [loading, setLoading] = useState(true);
