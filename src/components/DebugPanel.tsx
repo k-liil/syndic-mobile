@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Text,
   View,
+  Alert,
+  Share,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
@@ -75,6 +77,27 @@ export function DebugPanel() {
   const [visible, setVisible] = useState(false);
   const [displayLogs, setDisplayLogs] = useState<LogEntry[]>([]);
 
+  async function exportLogs() {
+    const logsText = displayLogs
+      .map((log) => `${log.timestamp} [${log.level.toUpperCase()}] ${log.message}`)
+      .join("\n");
+
+    const content = `=== DEBUG LOGS ===
+Exported: ${new Date().toLocaleString()}
+Total logs: ${displayLogs.length}
+
+${logsText}`;
+
+    try {
+      await Share.share({
+        message: content,
+        title: "Debug Logs",
+      });
+    } catch (error) {
+      Alert.alert("Erreur", "Impossible d'exporter les logs");
+    }
+  }
+
   useEffect(() => {
     const callback = () => {
       setDisplayLogs([...logs]);
@@ -133,15 +156,25 @@ export function DebugPanel() {
             />
           )}
 
-          <Pressable
-            style={styles.clearButton}
-            onPress={() => {
-              logs = [];
-              setDisplayLogs([]);
-            }}
-          >
-            <Text style={styles.clearText}>Effacer les logs</Text>
-          </Pressable>
+          <View style={styles.buttonRow}>
+            <Pressable
+              style={[styles.button, styles.exportButton]}
+              onPress={() => void exportLogs()}
+            >
+              <Ionicons name="download" size={16} color="#fff" />
+              <Text style={styles.buttonText}>Exporter</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.button, styles.clearButton]}
+              onPress={() => {
+                logs = [];
+                setDisplayLogs([]);
+              }}
+            >
+              <Ionicons name="trash" size={16} color="#fff" />
+              <Text style={styles.buttonText}>Effacer</Text>
+            </Pressable>
+          </View>
         </View>
       </Modal>
     </>
@@ -226,14 +259,27 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     lineHeight: 16,
   },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 10,
+    padding: 16,
+  },
+  button: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  exportButton: {
+    backgroundColor: Colors.primary,
+  },
   clearButton: {
     backgroundColor: Colors.danger,
-    padding: 12,
-    alignItems: "center",
-    margin: 16,
-    borderRadius: 8,
   },
-  clearText: {
+  buttonText: {
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
