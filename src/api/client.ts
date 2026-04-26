@@ -145,9 +145,10 @@ export async function fetchMe() {
 // ─── Organizations ───────────────────────────────────────────────────────────
 
 export async function fetchOrganizations() {
+  console.log("[API] fetchOrganizations called");
   return request<{ id: string; name: string; logoUrl: string | null }[]>(
     "GET",
-    "/api/mobile/organizations"
+    "/api/organizations"
   );
 }
 
