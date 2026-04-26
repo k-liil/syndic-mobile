@@ -27,21 +27,23 @@ function fmt(n: number) {
 export default function ProprietairesScreen() {
   const { state } = useAuth();
   const selectedOrgId = state.status === "authenticated" ? state.selectedOrg?.id : null;
+  const selectedOrgName = state.status === "authenticated" ? state.selectedOrg?.name : "N/A";
 
-  console.log("[Proprietaires] render - selectedOrgId:", selectedOrgId);
+  console.log("[Proprietaires] render - selectedOrgId:", selectedOrgId, "selectedOrgName:", selectedOrgName);
 
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastOrgId, setLastOrgId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
+      console.log("[Proprietaires] load() called for orgId:", selectedOrgId);
       setError(null);
-      console.log("[Proprietaires] Loading for org:", selectedOrgId);
       const data = await fetchOwnersSummary();
-      console.log("[Proprietaires] fetchOwnersSummary count:", (data as OwnerSummary[]).length);
+      console.log("[Proprietaires] fetchOwnersSummary returned", (data as OwnerSummary[]).length, "owners");
       if ((data as OwnerSummary[]).length > 0) {
         console.log("[Proprietaires] First owner:", JSON.stringify((data as OwnerSummary[])[0]));
       }
@@ -55,11 +57,17 @@ export default function ProprietairesScreen() {
     }
   }, [selectedOrgId]);
 
+  // Trigger load whenever selectedOrgId changes
   useEffect(() => {
-    console.log("[Proprietaires] useEffect triggered - selectedOrgId:", selectedOrgId);
-    setLoading(true);
-    void load();
-  }, [load, selectedOrgId]);
+    console.log("[Proprietaires] useEffect: selectedOrgId changed from", lastOrgId, "to", selectedOrgId);
+    if (selectedOrgId !== lastOrgId) {
+      console.log("[Proprietaires] Org changed, resetting and loading...");
+      setLastOrgId(selectedOrgId);
+      setLoading(true);
+      setOwners([]); // Clear owners when org changes
+      void load();
+    }
+  }, [selectedOrgId, lastOrgId, load]);
 
   function onRefresh() {
     setRefreshing(true);

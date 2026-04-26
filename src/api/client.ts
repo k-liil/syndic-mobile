@@ -38,7 +38,9 @@ export async function deleteOrgId() {
 let _selectedOrgId: string | null = null;
 
 export function setSelectedOrgId(id: string | null) {
+  const prev = _selectedOrgId;
   _selectedOrgId = id;
+  console.log("[API Client] setSelectedOrgId:", prev, "→", id);
 }
 
 // ─── HTTP helpers ────────────────────────────────────────────────────────────
@@ -58,7 +60,11 @@ async function request<T>(
   extraParams?: Record<string, string>
 ): Promise<T> {
   const url = new URL(`${BASE_URL}${path}`);
-  if (_selectedOrgId) url.searchParams.set("orgId", _selectedOrgId);
+  console.log(`[API] ${method} ${path} - Current _selectedOrgId: ${_selectedOrgId ?? "(none)"}`);
+  if (_selectedOrgId) {
+    url.searchParams.set("orgId", _selectedOrgId);
+    console.log(`[API] Added orgId to request:`, _selectedOrgId);
+  }
   if (extraParams) {
     Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
   }

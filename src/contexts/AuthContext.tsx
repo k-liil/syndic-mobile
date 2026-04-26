@@ -137,21 +137,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const selectOrg = useCallback(async (org: OrgInfo) => {
-    console.log("[AuthContext] selectOrg called with:", org.name, org.id);
+    console.log("[AuthContext] selectOrg called with org:", org.id, org.name);
     try {
+      console.log("[AuthContext] Saving org ID to storage:", org.id);
       await saveOrgId(org.id);
-      console.log("[AuthContext] saveOrgId done");
+      console.log("[AuthContext] Org ID saved successfully");
+
+      console.log("[AuthContext] Updating API client with selected org ID:", org.id);
       setSelectedOrgId(org.id);
-      console.log("[AuthContext] setSelectedOrgId done");
+      console.log("[AuthContext] API client updated");
+
+      console.log("[AuthContext] Updating React state with org:", org.name);
       setState((prev) => {
-        console.log("[AuthContext] setState called, prev status:", prev.status);
-        if (prev.status !== "authenticated") return prev;
+        console.log("[AuthContext] setState callback - prev status:", prev.status);
+        if (prev.status !== "authenticated") {
+          console.warn("[AuthContext] Not authenticated, cannot select org");
+          return prev;
+        }
+        console.log("[AuthContext] Creating new state with selectedOrg:", org.name, org.id);
         const newState = { ...prev, selectedOrg: org };
-        console.log("[AuthContext] New state set with org:", org.name);
+        console.log("[AuthContext] State updated. New selectedOrg:", newState.selectedOrg?.name, newState.selectedOrg?.id);
         return newState;
       });
+      console.log("[AuthContext] selectOrg completed successfully");
     } catch (error) {
-      console.error("[AuthContext] selectOrg error:", error);
+      console.error("[AuthContext] selectOrg failed with error:", error);
     }
   }, []);
 
