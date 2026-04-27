@@ -82,10 +82,30 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
-      - name: Create GitHub Release
+      - name: Create/Update Latest Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: latest-build
+          name: Latest Build
+          prerelease: true
           files: android/app/build/outputs/apk/release/app-release.apk
+          body: |
+            # Latest APK Build 📱
+
+            **Build Date**: ${{ github.event.head_commit.timestamp }}
+            **Commit**: ${{ github.event.head_commit.id }}
+            **Message**: ${{ github.event.head_commit.message }}
+
+            ## 📥 Installation
+
+            1. Download the APK below
+            2. Transfer to your Android phone
+            3. Open with file manager and install
+
+            **or**
+
+            Scan the QR code below to download directly on your phone:
+
+            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${{ github.server_url }}/${{ github.repository }}/releases/download/latest-build/app-release.apk)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
