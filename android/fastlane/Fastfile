@@ -1,0 +1,38 @@
+default_platform(:android)
+
+platform :android do
+  desc "Build Android APK"
+  lane :build do
+    # Ensure Gradle wrapper is executable
+    sh("chmod +x ../gradlew")
+
+    # If keystore is provided, decode it from base64
+    if ENV['ANDROID_KEYSTORE_FILE_BASE64']
+      UI.message("📦 Decoding keystore from base64...")
+      sh("echo '#{ENV['ANDROID_KEYSTORE_FILE_BASE64']}' | base64 -d > #{Dir.pwd}/../syndicly-release.jks")
+      UI.message("✅ Keystore created")
+    end
+
+    # Build the release APK
+    gradle(
+      task: "clean assembleRelease",
+      project_dir: "./"
+    )
+
+    puts "✅ APK compiled successfully!"
+    puts "📁 Output: app/build/outputs/apk/release/app-release.apk"
+  end
+
+  desc "Build debug APK (no signing required)"
+  lane :build_debug do
+    sh("chmod +x ../gradlew")
+
+    gradle(
+      task: "clean assembleDebug",
+      project_dir: "./"
+    )
+
+    puts "✅ Debug APK built successfully!"
+    puts "📁 Output: app/build/outputs/apk/debug/app-debug.apk"
+  end
+end

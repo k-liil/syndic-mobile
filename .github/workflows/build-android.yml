@@ -1,0 +1,91 @@
+name: Build Android APK (Fastlane)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build APK with Fastlane
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Expo CLI
+        run: npm install -g expo-cli
+
+      - name: Generate native code (prebuild)
+        run: npx expo prebuild --platform android --clean
+
+      - name: Install Fastlane
+        run: sudo gem install fastlane
+
+      - name: Create Fastlane Fastfile
+        run: |
+          mkdir -p android/fastlane
+          cat > android/fastlane/Fastfile << 'EOF'
+          default_platform(:android)
+
+          platform :android do
+            desc "Build release APK"
+            lane :build do
+              # Decode keystore from base64 if provided
+              if ENV['ANDROID_KEYSTORE_FILE_BASE64']
+                sh("echo '#{ENV['ANDROID_KEYSTORE_FILE_BASE64']}' | base64 -d > #{Dir.pwd}/../syndicly-release.jks")
+                UI.message("✅ Keystore created")
+              end
+
+              sh("chmod +x ../gradlew")
+
+              gradle(
+                task: "clean assembleRelease",
+                project_dir: "./"
+              )
+
+              UI.success("✅ APK built successfully!")
+            end
+          end
+          EOF
+
+      - name: Build APK with Fastlane
+        working-directory: ./android
+        run: fastlane android build
+        env:
+          EXPO_PUBLIC_API_URL: https://syndicly.ma
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_FILE_BASE64: ${{ secrets.ANDROID_KEYSTORE_FILE }}
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
