@@ -11,7 +11,10 @@ export default function TabsLayout() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <AppHeader onMenuPress={() => setDrawerOpen(true)} />
+      <AppHeader
+        onMenuPress={() => setDrawerOpen(true)}
+        onLogout={() => setDrawerOpen(false)}
+      />
 
       {/* Tabs Content */}
       <Tabs

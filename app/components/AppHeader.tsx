@@ -7,10 +7,11 @@ import OrgSwitcher from "./OrgSwitcher";
 
 interface AppHeaderProps {
   onMenuPress: () => void;
+  onLogout?: () => void;
   title?: string;
 }
 
-export default function AppHeader({ onMenuPress, title }: AppHeaderProps) {
+export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderProps) {
   const { state, logout } = useAuth();
   const selectedOrg = state.status === "authenticated" ? state.selectedOrg : null;
   const orgName = selectedOrg?.name || "Organization";
@@ -24,7 +25,10 @@ export default function AppHeader({ onMenuPress, title }: AppHeaderProps) {
         {
           text: "Déconnexion",
           onPress: async () => {
-            await logout();
+            if (onLogout) onLogout(); // Close drawer first
+            setTimeout(() => {
+              logout();
+            }, 100);
           },
           style: "destructive",
         },

@@ -26,7 +26,7 @@ interface MenuItem {
 
 export default function DrawerMenu({ onClose }: DrawerMenuProps) {
   const router = useRouter();
-  const { state, logout } = useAuth();
+  const { state } = useAuth();
   const userRole = state.status === "authenticated" ? state.user?.role : null;
   const userName = state.status === "authenticated" ? state.user?.name : "User";
   const orgName =
@@ -58,7 +58,7 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
       id: "reclamations",
       label: "Réclamations",
       icon: "chatbubble-ellipses",
-      route: "/reclamations",
+      route: "/(tabs)/reclamations",
       roles: ["SUPER_ADMIN", "MANAGER", "OWNER"],
     },
   ];
@@ -72,10 +72,6 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
     router.push(route as any);
   };
 
-  const handleLogout = async () => {
-    onClose();
-    await logout();
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,16 +117,6 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
         <TouchableOpacity style={styles.footerItem}>
           <Ionicons name="help-circle-outline" size={24} color={Colors.textSecondary} />
           <Text style={styles.footerLabel}>Aide</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.footerItem, styles.logoutItem]}
-          onPress={handleLogout}
-        >
-          <Ionicons name="log-out-outline" size={24} color={Colors.danger} />
-          <Text style={[styles.footerLabel, { color: Colors.danger }]}>
-            Déconnexion
-          </Text>
         </TouchableOpacity>
 
         {/* Version */}
