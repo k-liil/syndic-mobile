@@ -21,6 +21,9 @@ export default function OrgSwitcher() {
     state.status === "authenticated" ? state.selectedOrg : null;
   const orgs = state.status === "authenticated" ? state.orgs : [];
 
+  // Don't render if not authenticated or no org selected
+  if (!selectedOrg) return null;
+
   const handleSelectOrg = (org: OrgInfo) => {
     selectOrg(org);
     setShowDropdown(false);

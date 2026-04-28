@@ -141,9 +141,12 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          <Text style={styles.footer}>
-            Syndicly © {new Date().getFullYear()}
-          </Text>
+          <View style={styles.footerContainer}>
+            <Text style={styles.footer}>
+              Syndicly © {new Date().getFullYear()}
+            </Text>
+            <Text style={styles.version}>v1.1.4</Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -253,10 +256,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  footerContainer: {
+    alignItems: "center",
+    marginTop: 32,
+  },
   footer: {
     textAlign: "center",
     color: Colors.textMuted,
     fontSize: 12,
-    marginTop: 32,
+  },
+  version: {
+    textAlign: "center",
+    color: Colors.textMuted,
+    fontSize: 10,
+    marginTop: 4,
   },
 });
