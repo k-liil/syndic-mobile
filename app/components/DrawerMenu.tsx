@@ -85,7 +85,6 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
           </View>
           <View style={styles.userDetails}>
             <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.userRole}>{userRole}</Text>
             <Text style={styles.orgName}>{orgName}</Text>
           </View>
         </View>
