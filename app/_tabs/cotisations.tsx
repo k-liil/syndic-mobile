@@ -12,9 +12,9 @@ import { fetchOwnerLedger } from "@/api/client";
 import { DuesRow } from "@/components/DuesRow";
 import { Colors } from "@/constants/colors";
 import { CheckCircle2, AlertCircle, Clock, Receipt, Wallet } from "lucide-react-native";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
-import { Skeleton } from "@/src/components/ui/Skeleton";
-import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/Card";
 import { useQuery } from "@tanstack/react-query";
 import type { DueEntry, OwnerLedger } from "@/types";
 

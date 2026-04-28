@@ -26,9 +26,9 @@ import {
 import { createClaim } from "@/api/client";
 import { useUser } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
-import { Button } from "@/src/components/ui/Button";
-import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ClaimCategory } from "@/types";
 

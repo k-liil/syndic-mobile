@@ -14,9 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
 import { ApiError } from "@/api/client";
-import { Button } from "@/src/components/ui/Button";
-import { Card } from "@/src/components/ui/Card";
-import { Spacing, Typography, Radius } from "@/src/constants/ui-tokens";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react-native";
 
 const ERROR_MESSAGES: Record<string, string> = {

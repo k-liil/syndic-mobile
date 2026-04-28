@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Colors } from "@/constants/colors";
 import { ChevronDown, CheckCircle2 } from "lucide-react-native";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
 import type { OrgInfo } from "@/types";
 
 type Props = {

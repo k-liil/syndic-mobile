@@ -10,8 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
-import { Card } from "@/src/components/ui/Card";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Card } from "@/components/ui/Card";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
 import { ChevronRight, Building2 } from "lucide-react-native";
 import type { OrgInfo } from "@/types";
 
@@ -22,7 +22,7 @@ export default function SelectOrgScreen() {
 
   async function handleSelect(org: OrgInfo) {
     await selectOrg(org);
-    router.replace("/_tabs");
+    router.replace("/_tabs" as any);
   }
 
   return (

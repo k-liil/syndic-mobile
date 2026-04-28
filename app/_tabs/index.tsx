@@ -12,8 +12,8 @@ import { fetchDashboard } from "@/api/client";
 import { KPICard } from "@/components/KPICard";
 import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import { Colors } from "@/constants/colors";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
-import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Wallet, ArrowDownCircle, Users, AlertCircle } from "lucide-react-native";
 

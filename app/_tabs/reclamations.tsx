@@ -15,9 +15,9 @@ import { ClaimCard } from "@/components/ClaimCard";
 import { Colors } from "@/constants/colors";
 import { Plus, MessageCircle, AlertCircle } from "lucide-react-native";
 import { useAuth } from "@/contexts/AuthContext";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
-import { Skeleton } from "@/src/components/ui/Skeleton";
-import { Button } from "@/src/components/ui/Button";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Claim, ClaimStatus } from "@/types";
 

@@ -2,8 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/colors";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Card } from "@/src/components/ui/Card";
-import { Spacing, Typography } from "@/src/constants/ui-tokens";
+import { Card } from "@/components/ui/Card";
+import { Spacing, Typography } from "@/constants/ui-tokens";
 import type { DueEntry } from "@/types";
 
 function formatAmount(n: number) {

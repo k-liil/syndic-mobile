@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/colors";
-import { Card } from "@/src/components/ui/Card";
-import { Spacing, Typography, Radius } from "@/src/constants/ui-tokens";
+import { Card } from "@/components/ui/Card";
+import { Spacing, Typography, Radius } from "@/constants/ui-tokens";
 
 type Props = {
   label: string;

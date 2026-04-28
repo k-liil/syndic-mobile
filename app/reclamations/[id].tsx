@@ -24,11 +24,11 @@ import {
   AlertCircle
 } from "lucide-react-native";
 import { Colors } from "@/constants/colors";
-import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
-import { Card } from "@/src/components/ui/Card";
-import { Button } from "@/src/components/ui/Button";
-import { StatusBadge } from "@/src/components/StatusBadge";
-import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchClaim, addClaimComment } from "@/api/client";
 import { format } from "date-fns";
@@ -118,7 +118,7 @@ export default function ClaimDetailScreen() {
         >
           <Card padding="lg" style={styles.mainCard}>
             <View style={styles.statusRow}>
-              <StatusBadge status={claim.status} />
+              <StatusBadge type="claim" value={claim.status} />
               <Text style={Typography.caption}>
                 {format(new Date(claim.createdAt), "dd MMMM yyyy", { locale: fr })}
               </Text>

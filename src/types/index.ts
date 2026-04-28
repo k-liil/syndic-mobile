@@ -64,7 +64,7 @@ export type ClaimPriority = "LOW" | "MEDIUM" | "HIGH";
 export type Claim = {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   category: string;
   status: ClaimStatus;
   priority: ClaimPriority;

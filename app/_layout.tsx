@@ -43,13 +43,13 @@ function RootNavigator() {
       }
 
       if (inLoginScreen) {
-        router.replace("/_tabs");
+        router.replace("/_tabs" as any);
         return;
       }
 
       // Allow staying on select-org if multi-org, otherwise push back to tabs
       if (inSelectOrg && !hasMultipleOrgs) {
-        router.replace("/_tabs");
+        router.replace("/_tabs" as any);
       }
     }
   }, [state.status, (state as any).selectedOrg?.id, segments]);

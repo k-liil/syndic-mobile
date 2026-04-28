@@ -40,7 +40,7 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
     <View style={styles.header}>
       {/* Menu Hamburger */}
       <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-        <Ionicons name="menu" size={28} color={Colors.white} />
+        <Ionicons name="menu" size={28} color="#ffffff" />
       </TouchableOpacity>
 
       {/* Title and Org Info */}
@@ -53,7 +53,7 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
       <View style={styles.rightContainer}>
         <OrgSwitcher />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color={Colors.white} />
+          <Ionicons name="log-out-outline" size={24} color="#ffffff" />
         </TouchableOpacity>
       </View>
     </View>
@@ -85,11 +85,11 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 18,
     fontWeight: "700",
-    color: Colors.white,
+    color: "#ffffff",
   },
   orgName: {
     fontSize: 12,
-    color: Colors.white,
+    color: "#ffffff",
     opacity: 0.85,
     marginTop: 2,
   },
