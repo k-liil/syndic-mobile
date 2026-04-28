@@ -15,7 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { OrgInfo } from "@/types";
 
 export default function SelectOrgScreen() {
-  const { state, selectOrg, signOut } = useAuth();
+  const { state, selectOrg } = useAuth();
   const router = useRouter();
   const orgs: OrgInfo[] = state.status === "authenticated" ? state.orgs : [];
 
@@ -62,10 +62,6 @@ export default function SelectOrgScreen() {
             </Pressable>
           ))}
         </View>
-
-        <Pressable onPress={() => void signOut()} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Se déconnecter</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -131,14 +127,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: Colors.text,
-  },
-  logoutBtn: {
-    marginTop: 32,
-    alignItems: "center",
-  },
-  logoutText: {
-    color: Colors.danger,
-    fontSize: 14,
-    fontWeight: "600",
   },
 });

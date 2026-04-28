@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
+import type { OrgInfo } from "@/types";
 
 export default function OrgSwitcher() {
   const { state, selectOrg } = useAuth();
@@ -18,10 +19,10 @@ export default function OrgSwitcher() {
 
   const selectedOrg =
     state.status === "authenticated" ? state.selectedOrg : null;
-  const orgs = state.status === "authenticated" ? state.organizations : [];
+  const orgs = state.status === "authenticated" ? state.orgs : [];
 
-  const handleSelectOrg = (orgId: string) => {
-    selectOrg(orgId);
+  const handleSelectOrg = (org: OrgInfo) => {
+    selectOrg(org);
     setShowDropdown(false);
   };
 
@@ -56,7 +57,7 @@ export default function OrgSwitcher() {
                   styles.dropdownItem,
                   selectedOrg?.id === item.id && styles.dropdownItemActive,
                 ]}
-                onPress={() => handleSelectOrg(item.id)}
+                onPress={() => handleSelectOrg(item)}
               >
                 <View
                   style={[
