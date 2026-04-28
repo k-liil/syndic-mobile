@@ -12,6 +12,10 @@ import {
 } from "./schemas";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
+
+if (!BASE_URL) {
+  console.error("CRITICAL: EXPO_PUBLIC_API_URL is not defined in environment variables!");
+}
 const TOKEN_KEY = "syndic_token";
 const ORG_KEY = "syndic_org_id";
 
@@ -74,29 +78,41 @@ async function request<T>(
   } = {}
 ): Promise<T> {
   const { body, params, schema } = options;
-  const url = new URL(`${BASE_URL}${path}`);
   
+  const baseUrlClean = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+  const pathClean = path.startsWith("/") ? path : `/${path}`;
+  let fullUrl = `${baseUrlClean}${pathClean}`;
+  
+  const queryParams = new URLSearchParams();
   if (_selectedOrgId) {
-    url.searchParams.set("orgId", _selectedOrgId);
+    queryParams.append("orgId", _selectedOrgId);
   }
   
   if (params) {
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    Object.entries(params).forEach(([k, v]) => queryParams.append(k, v));
+  }
+
+  const queryString = queryParams.toString();
+  if (queryString) {
+    fullUrl += (fullUrl.includes("?") ? "&" : "?") + queryString;
   }
 
   const headers = await buildHeaders();
-  console.log(`[API] ${method} ${url.toString()}`);
+  console.log(`[API] Request: ${method} ${fullUrl}`);
 
   try {
-    const res = await fetch(url.toString(), {
+    const res = await fetch(fullUrl, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    console.log(`[API] Response from ${fullUrl}: status ${res.status}`);
+
+    console.log(`[API] Response status: ${res.status} (${res.ok ? "OK" : "Error"})`);
+
     if (res.status === 401) {
       console.warn("[API] 401 Unauthorized - trigger logout if needed");
-      // Optional: Emit event or call a logout handler
     }
 
     if (!res.ok) {
@@ -122,7 +138,11 @@ async function request<T>(
 
     return data as T;
   } catch (error) {
-    console.error(`[API] Request failed:`, error);
+    console.error(`[API] Request failed for ${method} ${url.toString()}:`, error);
+    // Log the error details if it's a fetch error (like connection refused)
+    if (error instanceof Error) {
+      console.error(`[API] Error details: ${error.name} - ${error.message}`);
+    }
     throw error;
   }
 }
@@ -143,21 +163,13 @@ export type LoginResponse = {
 };
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  const res = await fetch(`${BASE_URL}/api/mobile/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+  const data = await request<any>("POST", "/api/mobile/token", {
+    body: { email, password },
   });
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, data.error ?? "LOGIN_FAILED");
-  }
-
-  const data = await res.json();
   return {
     ...data,
-    user: UserProfileSchema.parse(data.user)
+    user: UserProfileSchema.parse(data.user),
   };
 }
 

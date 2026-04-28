@@ -60,7 +60,6 @@ function RootNavigator() {
         <Stack.Screen name="login" />
         <Stack.Screen name="select-org" />
         <Stack.Screen name="_tabs" />
-        <Stack.Screen name="reclamations" />
       </Stack>
       <DebugPanel />
     </>
