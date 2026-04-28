@@ -1,7 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/colors";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography } from "@/src/constants/ui-tokens";
+import { MessageSquare } from "lucide-react-native";
 import type { Claim } from "@/types";
 
 type Props = {
@@ -11,7 +14,7 @@ type Props = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   WATER: "Eau",
-  ELECTRICITY: "Electricite",
+  ELECTRICITY: "Électricité",
   ELEVATOR: "Ascenseur",
   COMMON_AREAS: "Parties communes",
   HEATING: "Chauffage",
@@ -27,69 +30,58 @@ function formatDate(iso: string) {
 }
 
 export function ClaimCard({ claim, onPress }: Props) {
-  const unitLabel =
-    claim.unit?.reference ?? claim.unit?.lotNumber ?? null;
+  const unitLabel = claim.unit?.reference ?? claim.unit?.lotNumber ?? null;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
+    <Card elevation="sm" padding="md" onPress={onPress} style={styles.card}>
       <View style={styles.header}>
         <View style={styles.badges}>
           <StatusBadge type="claim" value={claim.status} />
-          <View style={{ width: 6 }} />
+          <View style={{ width: Spacing.xs }} />
           <StatusBadge type="priority" value={claim.priority} />
         </View>
-        <Text style={styles.date}>{formatDate(claim.createdAt)}</Text>
+        <Text style={Typography.caption}>{formatDate(claim.createdAt)}</Text>
       </View>
 
-      <Text style={styles.title} numberOfLines={2}>{claim.title}</Text>
+      <Text style={[Typography.bodySemiBold, styles.title]} numberOfLines={2}>
+        {claim.title}
+      </Text>
 
       <View style={styles.footer}>
-        <Text style={styles.meta}>
+        <Text style={[Typography.caption, styles.meta]} numberOfLines={1}>
           {CATEGORY_LABELS[claim.category] ?? claim.category}
           {unitLabel ? `  •  Lot ${unitLabel}` : ""}
         </Text>
         {(claim.comments?.length ?? 0) > 0 ? (
-          <Text style={styles.comments}>
-            {claim.comments!.length} commentaire{claim.comments!.length > 1 ? "s" : ""}
-          </Text>
+          <View style={styles.commentCount}>
+            <MessageSquare size={12} color={Colors.primary} style={{ marginRight: 4 }} />
+            <Text style={styles.commentsText}>
+              {claim.comments!.length}
+            </Text>
+          </View>
         ) : null}
       </View>
-    </TouchableOpacity>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 2,
+    marginBottom: Spacing.md,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: Spacing.sm,
   },
   badges: {
     flexDirection: "row",
     alignItems: "center",
   },
-  date: {
-    fontSize: 11,
-    color: Colors.textMuted,
-  },
   title: {
-    fontSize: 15,
-    fontWeight: "600",
+    marginBottom: Spacing.sm,
     color: Colors.text,
-    marginBottom: 8,
-    lineHeight: 20,
   },
   footer: {
     flexDirection: "row",
@@ -97,13 +89,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   meta: {
-    fontSize: 12,
-    color: Colors.textSecondary,
     flex: 1,
+    marginRight: Spacing.sm,
   },
-  comments: {
+  commentCount: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  commentsText: {
     fontSize: 11,
     color: Colors.primary,
-    fontWeight: "500",
+    fontWeight: "700",
   },
 });

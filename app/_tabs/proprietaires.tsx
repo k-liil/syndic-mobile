@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -12,7 +11,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchOwnersSummary } from "@/api/client";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Users, Search, AlertCircle, CheckCircle2 } from "lucide-react-native";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Card } from "@/src/components/ui/Card";
+import { useQuery } from "@tanstack/react-query";
 import type { OwnerSummary } from "@/types";
 
 function fmt(n: number) {
@@ -27,70 +30,16 @@ function fmt(n: number) {
 export default function ProprietairesScreen() {
   const { state } = useAuth();
   const selectedOrgId = state.status === "authenticated" ? state.selectedOrg?.id : null;
-  const selectedOrgName = state.status === "authenticated" ? state.selectedOrg?.name : "N/A";
-
-  console.log("[Proprietaires] render - selectedOrgId:", selectedOrgId, "selectedOrgName:", selectedOrgName);
-
-  const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastOrgId, setLastOrgId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      console.log("[Proprietaires] *** LOADING DATA ***");
-      console.log("[Proprietaires]   orgId:", selectedOrgId);
-      console.log("[Proprietaires]   orgName:", selectedOrgName);
-      setError(null);
+  const { data: owners = [], isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ["owners", selectedOrgId],
+    queryFn: async () => {
       const data = await fetchOwnersSummary();
-      const count = (data as OwnerSummary[]).length;
-      console.log("[Proprietaires] *** DATA RECEIVED ***");
-      console.log("[Proprietaires]   Total owners:", count);
-      if (count > 0) {
-        const first = (data as OwnerSummary[])[0];
-        console.log("[Proprietaires]   First owner:", first.name, "(ID:", first.id + ")");
-        console.log("[Proprietaires]   Last owner:", (data as OwnerSummary[])[count - 1].name);
-      }
-      setOwners(data as OwnerSummary[]);
-      console.log("[Proprietaires] *** DATA SET IN STATE ***");
-    } catch (error) {
-      console.error("[Proprietaires] fetchOwnersSummary error:", error);
-      setError("Impossible de charger les copropriétaires.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [selectedOrgId, selectedOrgName]);
-
-  // Trigger load whenever selectedOrgId changes
-  useEffect(() => {
-    console.log("[Proprietaires] ========== useEffect TRIGGERED ==========");
-    console.log("[Proprietaires]   selectedOrgId:", selectedOrgId);
-    console.log("[Proprietaires]   selectedOrgName:", selectedOrgName);
-    console.log("[Proprietaires]   lastOrgId:", lastOrgId);
-    console.log("[Proprietaires]   Are they equal?", selectedOrgId === lastOrgId);
-
-    if (selectedOrgId !== lastOrgId) {
-      console.log("[Proprietaires] *** DETECTED ORG CHANGE ***");
-      console.log("[Proprietaires]   From: " + lastOrgId);
-      console.log("[Proprietaires]   To:   " + selectedOrgId);
-      console.log("[Proprietaires] Clearing owners list...");
-      setLastOrgId(selectedOrgId);
-      setLoading(true);
-      setOwners([]); // Clear owners when org changes
-      console.log("[Proprietaires] Calling load()...");
-      void load();
-    } else {
-      console.log("[Proprietaires] No org change detected");
-    }
-  }, [selectedOrgId, lastOrgId, load, selectedOrgName]);
-
-  function onRefresh() {
-    setRefreshing(true);
-    void load();
-  }
+      return data as OwnerSummary[];
+    },
+    enabled: !!selectedOrgId,
+  });
 
   const totalImpaye = owners.reduce((s, o) => s + o.remainingDueNow, 0);
   const impayeCount = owners.filter((o) => o.remainingDueNow > 0).length;
@@ -98,19 +47,25 @@ export default function ProprietairesScreen() {
   const q = searchQuery.trim().toLowerCase();
   const filtered = q
     ? owners.filter(
-        (o) => {
-          const nameMatch = o.name.toLowerCase().includes(q);
-          const firstNameMatch = (o.firstName?.toLowerCase() ?? "").includes(q);
-          const refMatch = (o.primaryUnitRef?.toLowerCase() ?? "").includes(q);
-          const match = nameMatch || firstNameMatch || refMatch;
-          if (match) {
-            console.log("[Proprietaires] Search match:", { name: o.name, ref: o.primaryUnitRef, query: q });
-          }
-          return match;
-        }
+        (o) =>
+          o.name.toLowerCase().includes(q) ||
+          (o.firstName?.toLowerCase() ?? "").includes(q) ||
+          (o.primaryUnitRef?.toLowerCase() ?? "").includes(q)
       )
     : owners;
-  console.log("[Proprietaires] Search:", { query: q, totalOwners: owners.length, filtered: filtered.length });
+
+  const renderSkeletons = () => (
+    <View style={{ marginTop: Spacing.md }}>
+      <Skeleton width="100%" height={50} style={{ marginBottom: Spacing.lg }} />
+      <View style={styles.summaryRow}>
+        <Skeleton width="48%" height={80} />
+        <Skeleton width="48%" height={80} />
+      </View>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Skeleton key={i} width="100%" height={70} style={{ marginBottom: Spacing.sm }} />
+      ))}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -118,85 +73,85 @@ export default function ProprietairesScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
         }
       >
-        <Text style={styles.pageTitle}>Copropriétaires</Text>
+        <Text style={Typography.h1}>Copropriétaires</Text>
 
-        {!loading && owners.length > 0 ? (
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher par nom ou lot…"
-            placeholderTextColor={Colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            clearButtonMode="while-editing"
-            autoCorrect={false}
-          />
-        ) : null}
-
-        {!loading && owners.length > 0 ? (
-          <View style={styles.summaryRow}>
-            <View style={[styles.summaryCard, { borderLeftColor: Colors.primary }]}>
-              <Text style={styles.summaryLabel}>Total</Text>
-              <Text style={[styles.summaryValue, { color: Colors.primary }]}>{owners.length}</Text>
-            </View>
-            <View style={[styles.summaryCard, { borderLeftColor: Colors.danger }]}>
-              <Text style={styles.summaryLabel}>Impayés</Text>
-              <Text style={[styles.summaryValue, { color: Colors.danger }]}>{fmt(totalImpaye)}</Text>
-              <Text style={styles.summarySubLabel}>{impayeCount} copro.</Text>
-            </View>
-          </View>
-        ) : null}
-
-        {loading && owners.length === 0 ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
+        {isLoading ? (
+          renderSkeletons()
         ) : error ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        ) : filtered.length === 0 ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>
-              {q ? "Aucun résultat" : "Aucun copropriétaire"}
-            </Text>
+            <AlertCircle size={20} color={Colors.dangerText} style={{ marginRight: Spacing.sm }} />
+            <Text style={styles.errorText}>Impossible de charger les copropriétaires.</Text>
           </View>
         ) : (
-          filtered.map((owner) => (
-            <View key={owner.id} style={styles.card}>
-              <View style={styles.cardLeft}>
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {(owner.firstName ?? owner.name).charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.ownerName}>
-                    {owner.firstName ? `${owner.firstName} ${owner.name}` : owner.name}
-                  </Text>
-                  {owner.primaryUnitRef ? (
-                    <Text style={styles.unitRef}>Lot {owner.primaryUnitRef}</Text>
-                  ) : null}
-                </View>
-              </View>
-              <View style={styles.cardRight}>
-                {owner.remainingDueNow > 0 ? (
-                  <>
-                    <Text style={styles.amountDue}>{fmt(owner.remainingDueNow)}</Text>
-                    <Text style={styles.amountLabel}>impayé</Text>
-                  </>
-                ) : (
-                  <View style={styles.paidBadge}>
-                    <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                    <Text style={styles.paidText}>À jour</Text>
-                  </View>
-                )}
-              </View>
+          <>
+            <View style={styles.searchContainer}>
+              <Search size={18} color={Colors.textSecondary} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Rechercher par nom ou lot…"
+                placeholderTextColor={Colors.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                clearButtonMode="while-editing"
+                autoCorrect={false}
+              />
             </View>
-          ))
+
+            <View style={styles.summaryRow}>
+              <Card padding="md" style={[styles.summaryCard, { borderLeftColor: Colors.primary }]}>
+                <Text style={Typography.label}>Total</Text>
+                <Text style={[Typography.h2, { color: Colors.primary, marginTop: 4 }]}>{owners.length}</Text>
+              </Card>
+              <Card padding="md" style={[styles.summaryCard, { borderLeftColor: Colors.danger }]}>
+                <Text style={Typography.label}>Impayés</Text>
+                <Text style={[Typography.h2, { color: Colors.danger, marginTop: 4 }]}>{fmt(totalImpaye)}</Text>
+                <Text style={[Typography.caption, { marginTop: 2 }]}>{impayeCount} copro.</Text>
+              </Card>
+            </View>
+
+            {filtered.length === 0 ? (
+              <View style={styles.emptyBox}>
+                <Users size={48} color={Colors.textMuted} />
+                <Text style={Typography.h3}>{q ? "Aucun résultat" : "Aucun copropriétaire"}</Text>
+              </View>
+            ) : (
+              filtered.map((owner) => (
+                <Card key={owner.id} padding="md" style={styles.ownerCard}>
+                  <View style={styles.cardLeft}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>
+                        {(owner.firstName ?? owner.name).charAt(0).toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.cardInfo}>
+                      <Text style={Typography.bodySemiBold}>
+                        {owner.firstName ? `${owner.firstName} ${owner.name}` : owner.name}
+                      </Text>
+                      {owner.primaryUnitRef ? (
+                        <Text style={[Typography.caption, { marginTop: 2 }]}>Lot {owner.primaryUnitRef}</Text>
+                      ) : null}
+                    </View>
+                  </View>
+                  <View style={styles.cardRight}>
+                    {owner.remainingDueNow > 0 ? (
+                      <>
+                        <Text style={[Typography.bodySemiBold, { color: Colors.danger }]}>{fmt(owner.remainingDueNow)}</Text>
+                        <Text style={[Typography.caption, { fontSize: 10 }]}>impayé</Text>
+                      </>
+                    ) : (
+                      <View style={styles.paidBadge}>
+                        <CheckCircle2 size={14} color={Colors.success} />
+                        <Text style={styles.paidText}>À jour</Text>
+                      </View>
+                    )}
+                  </View>
+                </Card>
+              ))
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -206,136 +161,91 @@ export default function ProprietairesScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 12,
+  content: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
+    ...Shadows.sm,
+  },
+  searchIcon: {
+    marginRight: Spacing.sm,
   },
   searchInput: {
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
+    flex: 1,
+    height: 48,
+    fontSize: 15,
     color: Colors.text,
-    backgroundColor: Colors.surface,
-    marginBottom: 14,
   },
   summaryRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 14,
     borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
   },
-  summaryLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  summaryValue: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  summarySubLabel: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  center: { paddingTop: 60, alignItems: "center" },
-  errorBox: {
-    backgroundColor: Colors.dangerLight,
-    borderRadius: 12,
-    padding: 16,
-  },
-  errorText: { color: Colors.dangerText, fontSize: 14 },
-  emptyBox: {
-    alignItems: "center",
-    paddingTop: 60,
-    gap: 10,
-  },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  card: {
+  ownerCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    marginBottom: Spacing.xs,
   },
   cardLeft: {
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
-    gap: 12,
+    gap: Spacing.md,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: Colors.primary,
   },
   cardInfo: { flex: 1 },
-  ownerName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  unitRef: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
   cardRight: {
     alignItems: "flex-end",
-  },
-  amountDue: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: Colors.danger,
-  },
-  amountLabel: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 2,
   },
   paidBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    backgroundColor: Colors.successLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
   },
   paidText: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "700",
     color: Colors.success,
+  },
+  errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.dangerLight,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  errorText: { ...Typography.caption, color: Colors.dangerText },
+  emptyBox: {
+    alignItems: "center",
+    paddingTop: 60,
+    gap: Spacing.sm,
   },
 });

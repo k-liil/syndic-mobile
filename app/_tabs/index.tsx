@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,7 +12,10 @@ import { fetchDashboard } from "@/api/client";
 import { KPICard } from "@/components/KPICard";
 import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Skeleton } from "@/src/components/ui/Skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { TrendingUp, Wallet, ArrowDownCircle, Users, AlertCircle } from "lucide-react-native";
 
 console.log("[DashboardScreen] module loaded");
 
@@ -30,67 +32,32 @@ function fmtPct(n: number) {
   return `${Math.round(n)}%`;
 }
 
-type DashData = {
-  totalReceipts?: number;
-  totalPayments?: number;
-  cashBalance?: number;
-  bankBalance?: number;
-  collectionRate?: number;
-  ownersCount?: number;
-  paidOwnersCount?: number;
-};
-
 export default function DashboardScreen() {
-  console.log("[DashboardScreen] render");
   const { state, selectOrg } = useAuth();
-  console.log("[DashboardScreen] auth state:", state.status);
-  console.log("[DashboardScreen] selectedOrg:", state.status === "authenticated" ? state.selectedOrg?.name : "N/A");
-  console.log("[DashboardScreen] orgs count:", state.status === "authenticated" ? state.orgs.length : 0);
+  const [year, setYear] = useState(new Date().getFullYear());
 
   if (state.status !== "authenticated") {
-    console.log("[DashboardScreen] not authenticated, showing spinner");
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: Colors.background }}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-        <Text style={{ marginTop: 12, color: Colors.textSecondary }}>Chargement... ({state.status})</Text>
-      </View>
-    );
+    return null; // Layout handles redirection
   }
+
   const user = state.user;
   const selectedOrg = state.selectedOrg;
   const isSuperAdmin = user.role === "SUPER_ADMIN";
-  const [data, setData] = useState<DashData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [year, setYear] = useState(new Date().getFullYear());
 
-  useEffect(() => {
-    console.log("[Dashboard] selectedOrg changed to:", selectedOrg?.name ?? "null");
-    void load();
-  }, [selectedOrg?.id]);
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ["dashboard", selectedOrg?.id, year],
+    queryFn: () => fetchDashboard(year),
+    enabled: !!selectedOrg?.id,
+  });
 
-  const load = useCallback(async () => {
-    try {
-      setError(null);
-      const raw = await fetchDashboard(year);
-      console.log("[Dashboard] fetchDashboard response:", JSON.stringify(raw));
-      setData(raw as DashData);
-    } catch (error) {
-      console.error("[Dashboard] fetchDashboard error:", error);
-      setError("Impossible de charger le tableau de bord.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [year]);
-
-  useEffect(() => { void load(); }, [load]);
-
-  function onRefresh() {
-    setRefreshing(true);
-    void load();
-  }
+  const renderSkeletons = () => (
+    <View style={styles.skeletonContainer}>
+      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
+      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
+      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
+      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -99,8 +66,8 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
+            refreshing={isRefetching}
+            onRefresh={refetch}
             tintColor={Colors.primary}
           />
         }
@@ -108,8 +75,8 @@ export default function DashboardScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.greeting}>Bonjour,</Text>
-            <Text style={styles.username}>
+            <Text style={Typography.caption}>Bonjour,</Text>
+            <Text style={Typography.h2}>
               {user.name?.split(" ")[0] ?? user.email}
             </Text>
           </View>
@@ -132,66 +99,55 @@ export default function DashboardScreen() {
           />
         ) : null}
 
+        <View style={styles.sectionHeader}>
+          <Text style={Typography.label}>Statistiques financières</Text>
+        </View>
 
-        {loading && !data ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
+        {isLoading ? (
+          renderSkeletons()
         ) : error ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+            <AlertCircle size={20} color={Colors.dangerText} style={{ marginRight: Spacing.sm }} />
+            <Text style={styles.errorText}>Impossible de charger les données.</Text>
           </View>
         ) : data ? (
           <>
-            {console.log("[DashboardScreen] Rendering data:", JSON.stringify(data))}
-            <Text style={styles.sectionTitle}>Finances</Text>
-
             <KPICard
               label="Taux de recouvrement"
-              value={data.collectionRate !== undefined ? fmtPct(data.collectionRate) : "—"}
-              sub="Cotisations encaissees vs dues"
-              color={
-                (data.collectionRate ?? 0) >= 80
-                  ? Colors.success
-                  : (data.collectionRate ?? 0) >= 50
-                  ? Colors.warning
-                  : Colors.danger
-              }
-              icon={<Ionicons name="trending-up-outline" size={18} color={Colors.primary} />}
-            />
-
-            <KPICard
-              label="Solde tresorerie"
-              value={data.cashBalance !== undefined ? fmt(data.cashBalance) : "—"}
-              sub={data.bankBalance !== undefined ? `Banque: ${fmt(data.bankBalance)}` : "Banque: —"}
-              color={Colors.primary}
-              icon={<Ionicons name="wallet-outline" size={18} color={Colors.primary} />}
-            />
-
-            <KPICard
-              label="Encaissements"
-              value={data.totalReceipts !== undefined ? fmt(data.totalReceipts) : "—"}
-              sub={data.totalPayments !== undefined ? `Depenses: ${fmt(data.totalPayments)}` : "Depenses: —"}
-              color={Colors.info}
-              icon={<Ionicons name="arrow-down-circle-outline" size={18} color={Colors.info} />}
-            />
-
-            <Text style={styles.sectionTitle}>Copropietaires</Text>
-
-            <KPICard
-              label="Copropietaires a jour"
-              value={
-                data.paidOwnersCount !== undefined && data.ownersCount !== undefined
-                  ? `${data.paidOwnersCount} / ${data.ownersCount}`
-                  : "— / —"
-              }
-              sub={
-                (data.ownersCount ?? 0) > 0
-                  ? `${Math.round(((data.paidOwnersCount ?? 0) / (data.ownersCount ?? 1)) * 100)}% ont paye`
-                  : ""
-              }
+              value={data.stats?.collectedAmount !== undefined && data.stats?.totalContributions 
+                ? fmtPct((data.stats.collectedAmount / data.stats.totalContributions) * 100) 
+                : "0%"}
+              sub="Cotisations encaissées vs dues"
               color={Colors.success}
-              icon={<Ionicons name="people-outline" size={18} color={Colors.success} />}
+              icon={<TrendingUp size={20} color={Colors.success} />}
+            />
+
+            <KPICard
+              label="Solde trésorerie"
+              value={data.stats?.collectedAmount !== undefined ? fmt(data.stats.collectedAmount) : "—"}
+              sub={`Total dû: ${data.stats?.totalContributions ? fmt(data.stats.totalContributions) : "—"}`}
+              color={Colors.primary}
+              icon={<Wallet size={20} color={Colors.primary} />}
+            />
+
+            <KPICard
+              label="Réclamations Actives"
+              value={String(data.stats?.activeClaims ?? 0)}
+              sub="Réclamations en attente ou en cours"
+              color={Colors.warning}
+              icon={<ArrowDownCircle size={20} color={Colors.warning} />}
+            />
+
+            <View style={styles.sectionHeader}>
+              <Text style={Typography.label}>Copropietaires</Text>
+            </View>
+
+            <KPICard
+              label="Total Copropriétaires"
+              value={String(data.stats?.totalOwners ?? 0)}
+              sub={`${data.stats?.totalUnits ?? 0} unités au total`}
+              color={Colors.info}
+              icon={<Users size={20} color={Colors.info} />}
             />
           </>
         ) : null}
@@ -203,39 +159,37 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
-  greeting: { fontSize: 13, color: Colors.textSecondary },
-  username: { fontSize: 22, fontWeight: "700", color: Colors.text },
   avatarWrap: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: Radius.md,
     backgroundColor: Colors.dark,
     alignItems: "center",
     justifyContent: "center",
+    ...Shadows.md,
   },
-  avatarText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 10,
-    marginTop: 4,
+  avatarText: { color: "#fff", fontWeight: "700", fontSize: 18 },
+  sectionHeader: {
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  center: { paddingTop: 60, alignItems: "center" },
+  skeletonContainer: {
+    marginTop: Spacing.md,
+  },
   errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.dangerLight,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
   },
-  errorText: { color: Colors.dangerText, fontSize: 14 },
+  errorText: { ...Typography.caption, color: Colors.dangerText },
 });

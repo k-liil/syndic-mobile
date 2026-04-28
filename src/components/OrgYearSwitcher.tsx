@@ -9,7 +9,8 @@ import {
   View,
 } from "react-native";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { ChevronDown, CheckCircle2 } from "lucide-react-native";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
 import type { OrgInfo } from "@/types";
 
 type Props = {
@@ -35,10 +36,8 @@ export function OrgYearSwitcher({
   const isMultiOrg = orgs.length > 1;
 
   async function handleSelectOrg(org: OrgInfo) {
-    console.log("[OrgYearSwitcher] handleSelectOrg called with:", org.name, org.id);
     try {
       await onSelectOrg(org);
-      console.log("[OrgYearSwitcher] selectOrg completed successfully");
     } catch (error) {
       console.error("[OrgYearSwitcher] selectOrg failed:", error);
     }
@@ -67,15 +66,15 @@ export function OrgYearSwitcher({
             </View>
           )}
           <View style={styles.textContent}>
-            <Text style={styles.orgLabel} numberOfLines={1}>
+            <Text style={[Typography.bodySemiBold, { fontSize: 13 }]} numberOfLines={1}>
               {selectedOrg.name}
             </Text>
             {isSuperAdmin && (
-              <Text style={styles.yearLabel}>{currentYear}</Text>
+              <Text style={Typography.caption}>{currentYear}</Text>
             )}
           </View>
         </View>
-        <Ionicons name="chevron-down" size={14} color={Colors.textSecondary} />
+        <ChevronDown size={16} color={Colors.textSecondary} />
       </Pressable>
 
       <Modal
@@ -89,11 +88,13 @@ export function OrgYearSwitcher({
           onPress={() => setVisible(false)}
         >
           <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            
             {/* Organizations Section */}
             {isMultiOrg && (
-              <>
+              <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Organisation</Text>
-                <ScrollView style={styles.list} nestedScrollEnabled>
+                <ScrollView style={styles.list} nestedScrollEnabled showsVerticalScrollIndicator={false}>
                   {orgs.map((org) => (
                     <Pressable
                       key={org.id}
@@ -102,8 +103,8 @@ export function OrgYearSwitcher({
                         org.id === selectedOrg.id && styles.itemSelected,
                       ]}
                       onPress={() => {
-                        console.log("[OrgYearSwitcher] Org item pressed:", org.name);
                         void handleSelectOrg(org);
+                        if (!isSuperAdmin) setVisible(false);
                       }}
                     >
                       {org.logoUrl ? (
@@ -119,39 +120,29 @@ export function OrgYearSwitcher({
                           </Text>
                         </View>
                       )}
-                      <Text style={styles.itemName} numberOfLines={1}>
+                      <Text style={[Typography.bodySemiBold, { flex: 1 }]} numberOfLines={1}>
                         {org.name}
                       </Text>
                       {org.id === selectedOrg.id && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={16}
-                          color={Colors.primary}
-                        />
+                        <CheckCircle2 size={18} color={Colors.primary} />
                       )}
                     </Pressable>
                   ))}
                 </ScrollView>
-              </>
+              </View>
             )}
 
             {/* Years Section */}
             {isSuperAdmin && (
-              <>
-                <Text style={[styles.sectionTitle, isMultiOrg && { marginTop: 16 }]}>
-                  Exercice
-                </Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.yearScroll}
-                >
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Exercice</Text>
+                <View style={styles.yearGrid}>
                   {years.map((year) => (
                     <Pressable
                       key={year}
                       style={[
-                        styles.yearButtonCompact,
-                        year === currentYear && styles.yearButtonCompactSelected,
+                        styles.yearButton,
+                        year === currentYear && styles.yearButtonSelected,
                       ]}
                       onPress={() => {
                         onSelectYear(year);
@@ -160,16 +151,16 @@ export function OrgYearSwitcher({
                     >
                       <Text
                         style={[
-                          styles.yearButtonCompactText,
-                          year === currentYear && styles.yearButtonCompactTextSelected,
+                          styles.yearButtonText,
+                          year === currentYear && styles.yearButtonTextSelected,
                         ]}
                       >
                         {year}
                       </Text>
                     </Pressable>
                   ))}
-                </ScrollView>
-              </>
+                </View>
+              </View>
             )}
           </View>
         </Pressable>
@@ -183,35 +174,36 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surface,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 6,
-    marginBottom: 10,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Shadows.sm,
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: Spacing.sm,
     flex: 1,
   },
   logo: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
+    width: 32,
+    height: 32,
+    borderRadius: Radius.sm,
   },
   logoInitial: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
+    width: 32,
+    height: 32,
+    borderRadius: Radius.sm,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   logoText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: "700",
     color: Colors.primary,
   },
@@ -219,50 +211,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
-  orgLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  yearLabel: {
-    fontSize: 10,
-    color: Colors.textSecondary,
-    marginTop: 1,
-  },
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "flex-end",
   },
   modalContent: {
     backgroundColor: Colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    maxHeight: "80%",
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xxl,
+    maxHeight: "85%",
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+    alignSelf: "center",
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  section: {
+    marginBottom: Spacing.xl,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textSecondary,
-    marginBottom: 10,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    ...Typography.label,
+    marginBottom: Spacing.md,
   },
   list: {
-    maxHeight: 200,
-    marginBottom: 16,
+    maxHeight: 300,
   },
   item: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surface,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 8,
-    gap: 10,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -271,53 +260,49 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight,
   },
   itemLogo: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
+    width: 36,
+    height: 36,
+    borderRadius: Radius.sm,
   },
   itemLogoInitial: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
+    width: 36,
+    height: 36,
+    borderRadius: Radius.sm,
     backgroundColor: Colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },
   itemLogoText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "700",
     color: "#fff",
   },
-  itemName: {
+  yearGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  yearButton: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-  },
-  yearScroll: {
-    marginVertical: 8,
-  },
-  yearButtonCompact: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    minWidth: "30%",
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
   },
-  yearButtonCompactSelected: {
+  yearButtonSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    ...Shadows.md,
   },
-  yearButtonCompactText: {
-    fontSize: 12,
-    fontWeight: "600",
+  yearButtonText: {
+    ...Typography.bodySemiBold,
     color: Colors.text,
   },
-  yearButtonCompactTextSelected: {
+  yearButtonTextSelected: {
     color: "#fff",
   },
 });

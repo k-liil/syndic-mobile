@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import {
-  ActivityIndicator,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -9,13 +8,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
-
-console.log("[CotisationsScreen] module loaded");
 import { fetchOwnerLedger } from "@/api/client";
 import { DuesRow } from "@/components/DuesRow";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { CheckCircle2, AlertCircle, Clock, Receipt, Wallet } from "lucide-react-native";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Card } from "@/src/components/ui/Card";
+import { useQuery } from "@tanstack/react-query";
 import type { DueEntry, OwnerLedger } from "@/types";
+
+console.log("[CotisationsScreen] module loaded");
 
 function fmt(n: number) {
   return new Intl.NumberFormat("fr-FR", {
@@ -26,7 +29,7 @@ function fmt(n: number) {
   }).format(n);
 }
 
-function mapEntry(raw: Record<string, unknown>): DueEntry {
+function mapEntry(raw: any): DueEntry {
   return {
     id: String(raw.id ?? raw.period ?? Math.random()),
     period: String(raw.period ?? ""),
@@ -38,53 +41,43 @@ function mapEntry(raw: Record<string, unknown>): DueEntry {
 }
 
 export default function CotisationsScreen() {
-  console.log("[CotisationsScreen] render");
   const { state } = useAuth();
-  console.log("[CotisationsScreen] auth state:", state.status);
-
   const user = state.status === "authenticated" ? state.user : null;
-  const [ledger, setLedger] = useState<OwnerLedger | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    if (!user?.ownerId) {
-      setError("Aucun profil copropietaire associe a votre compte.");
-      setLoading(false);
-      return;
-    }
-    try {
-      setError(null);
-      const raw = await fetchOwnerLedger(user.ownerId) as Record<string, unknown>;
-      setLedger({
+  const { data: ledger, isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ["ledger", user?.ownerId],
+    queryFn: async () => {
+      if (!user?.ownerId) throw new Error("No ownerId");
+      const raw = await fetchOwnerLedger(user.ownerId) as any;
+      return {
         remainingDueNowTotal: Number(raw.remainingDueNowTotal ?? 0),
         remainingFutureTotal: Number(raw.remainingFutureTotal ?? 0),
         dueNow: (Array.isArray(raw.dueNow) ? raw.dueNow : []).map(mapEntry),
         future: (Array.isArray(raw.future) ? raw.future : []).map(mapEntry),
         payments: Array.isArray(raw.payments)
-          ? (raw.payments as Record<string, unknown>[]).map((p) => ({
+          ? (raw.payments as any[]).map((p) => ({
               id: String(p.id ?? ""),
               date: String(p.date ?? p.createdAt ?? ""),
               amount: Number(p.amount ?? 0),
               reference: String(p.reference ?? p.receiptRef ?? ""),
             }))
           : [],
-      });
-    } catch {
-      setError("Impossible de charger vos cotisations.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [user?.ownerId]);
+      } as OwnerLedger;
+    },
+    enabled: !!user?.ownerId,
+  });
 
-  useEffect(() => { void load(); }, [load]);
-
-  function onRefresh() {
-    setRefreshing(true);
-    void load();
-  }
+  const renderSkeletons = () => (
+    <View style={{ marginTop: Spacing.md }}>
+      <View style={styles.summaryRow}>
+        <Skeleton width="48%" height={80} />
+        <Skeleton width="48%" height={80} />
+      </View>
+      <Skeleton width="100%" height={60} style={{ marginTop: Spacing.lg }} />
+      <Skeleton width="100%" height={60} style={{ marginTop: Spacing.sm }} />
+      <Skeleton width="100%" height={60} style={{ marginTop: Spacing.sm }} />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -92,54 +85,44 @@ export default function CotisationsScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={Colors.primary}
-          />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
         }
       >
-        {/* Title */}
-        <Text style={styles.pageTitle}>Mes Cotisations</Text>
+        <Text style={Typography.h1}>Mes Cotisations</Text>
         {user?.unitRef ? (
-          <Text style={styles.unitLabel}>Lot {user.unitRef}</Text>
+          <Text style={[Typography.caption, styles.unitLabel]}>Lot {user.unitRef}</Text>
         ) : null}
 
-        {loading && !ledger ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
+        {isLoading ? (
+          renderSkeletons()
         ) : error ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+            <AlertCircle size={20} color={Colors.dangerText} style={{ marginRight: Spacing.sm }} />
+            <Text style={styles.errorText}>Impossible de charger vos cotisations.</Text>
           </View>
         ) : ledger ? (
           <>
-            {/* Summary cards */}
             <View style={styles.summaryRow}>
-              <View style={[styles.summaryCard, { borderLeftColor: Colors.danger }]}>
-                <Text style={styles.summaryLabel}>
-                  {`Dû au ${new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long" })}`}
-                </Text>
-                <Text style={[styles.summaryAmount, { color: Colors.danger }]}>
+              <Card padding="md" style={[styles.summaryCard, { borderLeftColor: Colors.danger }]}>
+                <Text style={Typography.label}>À payer maintenant</Text>
+                <Text style={[Typography.h2, { color: Colors.danger, marginTop: 4 }]}>
                   {fmt(ledger.remainingDueNowTotal)}
                 </Text>
-              </View>
-              <View style={[styles.summaryCard, { borderLeftColor: Colors.warning }]}>
-                <Text style={styles.summaryLabel}>Echeances futures</Text>
-                <Text style={[styles.summaryAmount, { color: Colors.warning }]}>
+              </Card>
+              <Card padding="md" style={[styles.summaryCard, { borderLeftColor: Colors.warning }]}>
+                <Text style={Typography.label}>Échéances futures</Text>
+                <Text style={[Typography.h2, { color: Colors.warning, marginTop: 4 }]}>
                   {fmt(ledger.remainingFutureTotal)}
                 </Text>
-              </View>
+              </Card>
             </View>
 
-            {/* Due now */}
             {ledger.dueNow.length > 0 ? (
               <>
                 <View style={styles.sectionHeader}>
-                  <Ionicons name="alert-circle" size={16} color={Colors.danger} />
-                  <Text style={[styles.sectionTitle, { color: Colors.danger }]}>
-                    Cotisations à payer ({ledger.dueNow.length})
+                  <AlertCircle size={16} color={Colors.danger} />
+                  <Text style={[Typography.label, { color: Colors.danger }]}>
+                    Cotisations en attente ({ledger.dueNow.length})
                   </Text>
                 </View>
                 {ledger.dueNow.map((entry) => (
@@ -147,20 +130,22 @@ export default function CotisationsScreen() {
                 ))}
               </>
             ) : (
-              <View style={styles.allPaidBox}>
-                <Ionicons name="checkmark-circle" size={28} color={Colors.success} />
-                <Text style={styles.allPaidText}>Vous etes a jour !</Text>
-              </View>
+              <Card padding="lg" style={styles.allPaidBox}>
+                <CheckCircle2 size={32} color={Colors.success} />
+                <Text style={[Typography.bodySemiBold, { color: Colors.successText, marginTop: 8 }]}>
+                  Vous êtes à jour !
+                </Text>
+                <Text style={[Typography.caption, { textAlign: "center", marginTop: 4 }]}>
+                  Aucune cotisation impayée pour le moment.
+                </Text>
+              </Card>
             )}
 
-            {/* Future */}
             {ledger.future.length > 0 ? (
               <>
-                <View style={[styles.sectionHeader, { marginTop: 16 }]}>
-                  <Ionicons name="time-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={styles.sectionTitle}>
-                    A venir ({ledger.future.length})
-                  </Text>
+                <View style={styles.sectionHeader}>
+                  <Clock size={16} color={Colors.textSecondary} />
+                  <Text style={Typography.label}>À venir ({ledger.future.length})</Text>
                 </View>
                 {ledger.future.map((entry) => (
                   <DuesRow key={entry.id} entry={entry} />
@@ -168,19 +153,18 @@ export default function CotisationsScreen() {
               </>
             ) : null}
 
-            {/* Payment history */}
             {ledger.payments.length > 0 ? (
               <>
-                <View style={[styles.sectionHeader, { marginTop: 16 }]}>
-                  <Ionicons name="receipt-outline" size={16} color={Colors.primary} />
-                  <Text style={[styles.sectionTitle, { color: Colors.primary }]}>
-                    Historique ({ledger.payments.length})
+                <View style={styles.sectionHeader}>
+                  <Receipt size={16} color={Colors.primary} />
+                  <Text style={[Typography.label, { color: Colors.primary }]}>
+                    Historique des paiements ({ledger.payments.length})
                   </Text>
                 </View>
                 {ledger.payments.map((p) => (
-                  <View key={p.id} style={styles.paymentRow}>
-                    <View>
-                      <Text style={styles.paymentDate}>
+                  <Card key={p.id} padding="md" style={styles.paymentRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={Typography.bodySemiBold}>
                         {new Date(p.date).toLocaleDateString("fr-FR", {
                           day: "2-digit",
                           month: "short",
@@ -188,11 +172,13 @@ export default function CotisationsScreen() {
                         })}
                       </Text>
                       {p.reference ? (
-                        <Text style={styles.paymentRef}>Ref: {p.reference}</Text>
+                        <Text style={[Typography.caption, { marginTop: 2 }]}>Ref: {p.reference}</Text>
                       ) : null}
                     </View>
-                    <Text style={styles.paymentAmount}>{fmt(p.amount)}</Text>
-                  </View>
+                    <View style={styles.paymentAmountBadge}>
+                      <Text style={styles.paymentAmountText}>{fmt(p.amount)}</Text>
+                    </View>
+                  </Card>
                 ))}
               </>
             ) : null}
@@ -206,100 +192,57 @@ export default function CotisationsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 2,
-  },
+  content: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
   unitLabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 20,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
   summaryRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   summaryCard: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 14,
     borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  summaryLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  summaryAmount: {
-    fontSize: 17,
-    fontWeight: "700",
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    gap: Spacing.xs,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
   },
   allPaidBox: {
-    backgroundColor: Colors.successLight,
-    borderRadius: 12,
-    padding: 20,
     alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
-  },
-  allPaidText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: Colors.successText,
+    backgroundColor: Colors.successLight,
+    borderColor: Colors.success,
+    borderWidth: 0,
+    marginTop: Spacing.md,
   },
   paymentRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 6,
+    marginBottom: Spacing.xs,
   },
-  paymentDate: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: Colors.text,
+  paymentAmountBadge: {
+    backgroundColor: Colors.successLight,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: Radius.full,
   },
-  paymentRef: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  paymentAmount: {
-    fontSize: 15,
-    fontWeight: "700",
+  paymentAmountText: {
+    ...Typography.bodySemiBold,
     color: Colors.successText,
+    fontSize: 14,
   },
-  center: { paddingTop: 60, alignItems: "center" },
   errorBox: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.dangerLight,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 20,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
   },
-  errorText: { color: Colors.dangerText, fontSize: 14 },
+  errorText: { ...Typography.caption, color: Colors.dangerText },
 });

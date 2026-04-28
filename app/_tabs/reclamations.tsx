@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Pressable,
   RefreshControl,
@@ -14,8 +13,12 @@ import { useRouter } from "expo-router";
 import { fetchClaims, updateClaimStatus } from "@/api/client";
 import { ClaimCard } from "@/components/ClaimCard";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Plus, MessageCircle, AlertCircle } from "lucide-react-native";
 import { useAuth } from "@/contexts/AuthContext";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Skeleton } from "@/src/components/ui/Skeleton";
+import { Button } from "@/src/components/ui/Button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Claim, ClaimStatus } from "@/types";
 
 const FILTERS: { label: string; value: ClaimStatus | "ALL" }[] = [
@@ -33,35 +36,26 @@ const STATUS_TRANSITIONS: Record<ClaimStatus, { label: string; next: ClaimStatus
 
 export default function ReclamationsScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { state } = useAuth();
   const isSuperAdmin = state.status === "authenticated" && state.user.role === "SUPER_ADMIN";
 
-  const [claims, setClaims] = useState<Claim[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ClaimStatus | "ALL">("ALL");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setError(null);
-      const data = await fetchClaims();
-      setClaims(data as Claim[]);
-    } catch {
-      setError("Impossible de charger les réclamations.");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const { data: claims = [], isLoading, error, refetch, isRefetching } = useQuery({
+    queryKey: ["claims"],
+    queryFn: fetchClaims,
+  });
 
-  useEffect(() => { void load(); }, [load]);
-
-  function onRefresh() {
-    setRefreshing(true);
-    void load();
-  }
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: ClaimStatus }) => updateClaimStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["claims"] });
+    },
+    onError: () => {
+      Alert.alert("Erreur", "Impossible de mettre à jour le statut.");
+    },
+  });
 
   async function handleStatusChange(claim: Claim) {
     const transition = STATUS_TRANSITIONS[claim.status];
@@ -74,18 +68,8 @@ export default function ReclamationsScreen() {
         { text: "Annuler", style: "cancel" },
         {
           text: "Confirmer",
-          onPress: async () => {
-            setUpdatingId(claim.id);
-            try {
-              await updateClaimStatus(claim.id, transition.next);
-              setClaims((prev) =>
-                prev.map((c) => (c.id === claim.id ? { ...c, status: transition.next } : c))
-              );
-            } catch {
-              Alert.alert("Erreur", "Impossible de mettre à jour le statut.");
-            } finally {
-              setUpdatingId(null);
-            }
+          onPress: () => {
+            statusMutation.mutate({ id: claim.id, status: transition.next });
           },
         },
       ]
@@ -96,30 +80,43 @@ export default function ReclamationsScreen() {
   const openCount = claims.filter((c) => c.status === "OPEN").length;
   const inProgressCount = claims.filter((c) => c.status === "IN_PROGRESS").length;
 
+  const renderSkeletons = () => (
+    <View style={{ marginTop: Spacing.md }}>
+      {[1, 2, 3, 4].map((i) => (
+        <Skeleton key={i} width="100%" height={120} style={{ marginBottom: Spacing.md }} />
+      ))}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.primary} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.pageTitle}>Réclamations</Text>
-            {!loading && claims.length > 0 ? (
-              <Text style={styles.subtitle}>
+            <Text style={Typography.h1}>Réclamations</Text>
+            {!isLoading && claims.length > 0 ? (
+              <Text style={Typography.caption}>
                 {openCount} ouverte{openCount !== 1 ? "s" : ""}
                 {inProgressCount > 0 ? `, ${inProgressCount} en cours` : ""}
               </Text>
             ) : null}
           </View>
           {!isSuperAdmin ? (
-            <Pressable style={styles.fab} onPress={() => router.push("/reclamations/new")}>
-              <Ionicons name="add" size={22} color="#fff" />
-            </Pressable>
+            <Button
+              variant="primary"
+              size="sm"
+              onPress={() => router.push("/reclamations/new")}
+              title=""
+              icon={Plus}
+              style={styles.fab}
+            />
           ) : null}
         </View>
 
@@ -138,21 +135,20 @@ export default function ReclamationsScreen() {
           ))}
         </ScrollView>
 
-        {loading && claims.length === 0 ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
+        {isLoading ? (
+          renderSkeletons()
         ) : error ? (
           <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+            <AlertCircle size={20} color={Colors.dangerText} style={{ marginRight: Spacing.sm }} />
+            <Text style={styles.errorText}>Impossible de charger les réclamations.</Text>
           </View>
         ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Ionicons name="chatbubble-outline" size={40} color={Colors.textMuted} />
-            <Text style={styles.emptyTitle}>Aucune réclamation</Text>
-            <Text style={styles.emptyText}>
+            <MessageCircle size={48} color={Colors.textMuted} />
+            <Text style={Typography.h3}>Aucune réclamation</Text>
+            <Text style={[Typography.body, styles.emptyText]}>
               {filter === "ALL"
-                ? "Appuyez sur + pour soumettre votre première réclamation."
+                ? "Il n'y a aucune réclamation pour le moment."
                 : "Aucune réclamation dans cette catégorie."}
             </Text>
           </View>
@@ -164,23 +160,17 @@ export default function ReclamationsScreen() {
                 onPress={() => router.push({ pathname: "/reclamations/[id]", params: { id: claim.id } })}
               />
               {isSuperAdmin && STATUS_TRANSITIONS[claim.status] ? (
-                <Pressable
+                <Button
+                  variant="outline"
+                  size="sm"
+                  title={STATUS_TRANSITIONS[claim.status]!.label}
+                  onPress={() => handleStatusChange(claim)}
+                  loading={statusMutation.isPending && statusMutation.variables?.id === claim.id}
                   style={[
                     styles.actionBtn,
                     { borderColor: STATUS_TRANSITIONS[claim.status]!.color },
-                    updatingId === claim.id && styles.actionBtnDisabled,
                   ]}
-                  onPress={() => handleStatusChange(claim)}
-                  disabled={updatingId === claim.id}
-                >
-                  {updatingId === claim.id ? (
-                    <ActivityIndicator size="small" color={STATUS_TRANSITIONS[claim.status]!.color} />
-                  ) : (
-                    <Text style={[styles.actionBtnText, { color: STATUS_TRANSITIONS[claim.status]!.color }]}>
-                      {STATUS_TRANSITIONS[claim.status]!.label}
-                    </Text>
-                  )}
-                </Pressable>
+                />
               ) : null}
             </View>
           ))
@@ -193,61 +183,66 @@ export default function ReclamationsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: Spacing.lg,
   },
-  pageTitle: { fontSize: 24, fontWeight: "700", color: Colors.text },
-  subtitle: { fontSize: 13, color: Colors.textSecondary, marginTop: 2 },
   fab: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
+    width: 44,
+    height: 44,
+    minHeight: 0,
+    borderRadius: Radius.md,
+    ...Shadows.md,
   },
   filters: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
-    paddingRight: 8,
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+    paddingRight: Spacing.lg,
   },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: Radius.full,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  filterChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  filterChipText: { fontSize: 13, fontWeight: "500", color: Colors.textSecondary },
+  filterChipActive: { 
+    backgroundColor: Colors.primary, 
+    borderColor: Colors.primary,
+    ...Shadows.sm,
+  },
+  filterChipText: { 
+    ...Typography.caption, 
+    fontWeight: "600",
+    color: Colors.textSecondary 
+  },
   filterChipTextActive: { color: "#fff" },
-  center: { paddingTop: 60, alignItems: "center" },
-  errorBox: { backgroundColor: Colors.dangerLight, borderRadius: 12, padding: 16 },
-  errorText: { color: Colors.dangerText, fontSize: 14 },
-  emptyBox: { alignItems: "center", paddingTop: 60, paddingHorizontal: 32, gap: 10 },
-  emptyTitle: { fontSize: 17, fontWeight: "600", color: Colors.text },
-  emptyText: { fontSize: 14, color: Colors.textSecondary, textAlign: "center", lineHeight: 20 },
-  actionBtn: {
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingVertical: 9,
+  errorBox: { 
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: -4,
-    marginBottom: 12,
-    marginHorizontal: 2,
+    backgroundColor: Colors.dangerLight, 
+    borderRadius: Radius.md, 
+    padding: Spacing.md 
+  },
+  errorText: { ...Typography.caption, color: Colors.dangerText },
+  emptyBox: { 
+    alignItems: "center", 
+    paddingTop: 60, 
+    paddingHorizontal: Spacing.xl, 
+    gap: Spacing.sm 
+  },
+  emptyText: { 
+    textAlign: "center", 
+    color: Colors.textSecondary 
+  },
+  actionBtn: {
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.md,
     backgroundColor: Colors.surface,
   },
-  actionBtnDisabled: { opacity: 0.5 },
-  actionBtnText: { fontSize: 13, fontWeight: "600" },
 });

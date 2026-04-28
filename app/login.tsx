@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,13 +14,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
 import { ApiError } from "@/api/client";
+import { Button } from "@/src/components/ui/Button";
+import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography, Radius } from "@/src/constants/ui-tokens";
+import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react-native";
 
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_CREDENTIALS: "Email ou mot de passe incorrect.",
   EMAIL_PASSWORD_REQUIRED: "Veuillez saisir votre email et mot de passe.",
-  NO_ORGANIZATION: "Votre compte n'est associe a aucune organisation.",
-  SERVER_ERROR: "Erreur serveur. Veuillez reessayer.",
-  LOGIN_FAILED: "Connexion impossible. Verifiez votre connexion internet.",
+  NO_ORGANIZATION: "Votre compte n'est associé à aucune organisation.",
+  SERVER_ERROR: "Erreur serveur. Veuillez réessayer.",
+  LOGIN_FAILED: "Connexion impossible. Vérifiez votre connexion internet.",
 };
 
 export default function LoginScreen() {
@@ -43,13 +45,12 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signIn(trimmedEmail, password);
-      // Navigation handled by RouteGuard
     } catch (err) {
       let message = "Une erreur est survenue.";
       if (err instanceof ApiError) {
         message = ERROR_MESSAGES[err.message] ?? ERROR_MESSAGES.LOGIN_FAILED;
       }
-      Alert.alert("Connexion echouee", message);
+      Alert.alert("Connexion échouée", message);
     } finally {
       setLoading(false);
     }
@@ -67,45 +68,51 @@ export default function LoginScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <Image
-              source={require("../assets/icon.png")}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.brand}>Syndicly</Text>
-            <Text style={styles.tagline}>Espace copropietaire</Text>
-          </View>
-
-          {/* Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Connexion</Text>
-            <Text style={styles.cardSub}>
-              Connectez-vous pour acceder a votre espace.
-            </Text>
-
-            {/* Email */}
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>Adresse email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="vous@exemple.com"
-                placeholderTextColor={Colors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                returnKeyType="next"
+            <View style={styles.logoContainer}>
+              <Image
+                source={require("../assets/icon.png")}
+                style={styles.logo}
+                resizeMode="contain"
               />
             </View>
+            <Text style={styles.brand}>Syndicly</Text>
+            <Text style={styles.tagline}>Gestion de copropriété simplifiée</Text>
+          </View>
 
-            {/* Password */}
+          {/* Form Card */}
+          <Card padding="lg" elevation="lg" style={styles.card}>
+            <Text style={Typography.h2}>Connexion</Text>
+            <Text style={[Typography.caption, { marginBottom: Spacing.lg }]}>
+              Accédez à votre espace gestionnaire ou copropriétaire.
+            </Text>
+
+            {/* Email Field */}
+            <View style={styles.fieldGroup}>
+              <Text style={styles.label}>Adresse email</Text>
+              <View style={styles.inputWrapper}>
+                <Mail size={20} color={Colors.textSecondary} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="vous@exemple.com"
+                  placeholderTextColor={Colors.textMuted}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  returnKeyType="next"
+                />
+              </View>
+            </View>
+
+            {/* Password Field */}
             <View style={styles.fieldGroup}>
               <Text style={styles.label}>Mot de passe</Text>
-              <View style={styles.passwordWrap}>
+              <View style={styles.inputWrapper}>
+                <Lock size={20} color={Colors.textSecondary} style={styles.inputIcon} />
                 <TextInput
-                  style={[styles.input, { flex: 1, borderWidth: 0 }]}
+                  style={styles.input}
                   placeholder="••••••••"
                   placeholderTextColor={Colors.textMuted}
                   value={password}
@@ -115,37 +122,34 @@ export default function LoginScreen() {
                   returnKeyType="done"
                   onSubmitEditing={handleLogin}
                 />
-                <Pressable
-                  onPress={() => setPasswordVisible((v) => !v)}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => setPasswordVisible(!passwordVisible)}
+                  title=""
+                  icon={passwordVisible ? EyeOff : Eye}
                   style={styles.eyeBtn}
-                  hitSlop={8}
-                >
-                  <Text style={styles.eyeText}>
-                    {passwordVisible ? "Cacher" : "Voir"}
-                  </Text>
-                </Pressable>
+                />
               </View>
             </View>
 
-            {/* Submit */}
-            <Pressable
-              style={[styles.btn, loading && styles.btnDisabled]}
+            {/* Submit Button */}
+            <Button
+              title="Se connecter"
               onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.btnText}>Se connecter</Text>
-              )}
-            </Pressable>
-          </View>
+              loading={loading}
+              icon={LogIn}
+              iconPosition="right"
+              style={{ marginTop: Spacing.md }}
+            />
+          </Card>
 
+          {/* Footer */}
           <View style={styles.footerContainer}>
             <Text style={styles.footer}>
               Syndicly © {new Date().getFullYear()}
             </Text>
-            <Text style={styles.version}>v1.1.4</Text>
+            <Text style={styles.version}>v1.2.0</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -156,119 +160,84 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.dark,
+    backgroundColor: Colors.background,
   },
   scroll: {
     flexGrow: 1,
     justifyContent: "center",
-    padding: 24,
+    padding: Spacing.lg,
   },
   header: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: Spacing.xl,
+  },
+  logoContainer: {
+    backgroundColor: Colors.dark,
+    padding: Spacing.sm,
+    borderRadius: Radius.lg,
+    marginBottom: Spacing.md,
+    ...Shadows.md,
   },
   logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    marginBottom: 12,
+    width: 64,
+    height: 64,
   },
   brand: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#fff",
-    marginBottom: 4,
+    ...Typography.h1,
+    color: Colors.dark,
   },
   tagline: {
-    fontSize: 13,
-    color: Colors.textMuted,
+    ...Typography.caption,
+    marginTop: Spacing.xs,
   },
   card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  cardSub: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 24,
+    width: "100%",
   },
   fieldGroup: {
-    marginBottom: 16,
+    marginBottom: Spacing.md,
   },
   label: {
-    fontSize: 13,
-    fontWeight: "600",
+    ...Typography.label,
+    marginBottom: Spacing.xs,
     color: Colors.text,
-    marginBottom: 6,
   },
-  input: {
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: Colors.text,
-    backgroundColor: Colors.background,
-  },
-  passwordWrap: {
+  inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 10,
-    backgroundColor: Colors.background,
-    overflow: "hidden",
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surfaceAlt,
+    paddingLeft: Spacing.md,
+  },
+  inputIcon: {
+    marginRight: Spacing.xs,
+  },
+  input: {
+    flex: 1,
+    ...Typography.body,
+    paddingVertical: Spacing.md,
+    color: Colors.text,
   },
   eyeBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  eyeText: {
-    fontSize: 12,
-    color: Colors.primary,
-    fontWeight: "600",
-  },
-  btn: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: "center",
-    marginTop: 8,
-  },
-  btnDisabled: {
-    opacity: 0.6,
-  },
-  btnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    paddingHorizontal: Spacing.md,
+    minHeight: 0,
+    backgroundColor: "transparent",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   footerContainer: {
     alignItems: "center",
-    marginTop: 32,
+    marginTop: Spacing.xxl,
   },
   footer: {
+    ...Typography.caption,
     textAlign: "center",
-    color: Colors.textMuted,
-    fontSize: 12,
   },
   version: {
-    textAlign: "center",
-    color: Colors.textMuted,
+    ...Typography.caption,
     fontSize: 10,
-    marginTop: 4,
+    marginTop: Spacing.xs,
+    opacity: 0.5,
   },
 });

@@ -1,6 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Colors } from "@/constants/colors";
+import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography, Radius } from "@/src/constants/ui-tokens";
 
 type Props = {
   label: string;
@@ -12,57 +14,40 @@ type Props = {
 
 export function KPICard({ label, value, sub, color = Colors.primary, icon }: Props) {
   return (
-    <View style={styles.card}>
-      <View style={[styles.accent, { backgroundColor: color }]} />
-      <View style={styles.body}>
-        {icon ? <View style={styles.iconWrap}>{icon}</View> : null}
-        <Text style={styles.label}>{label}</Text>
-        <Text style={[styles.value, { color }]}>{value}</Text>
-        {sub ? <Text style={styles.sub}>{sub}</Text> : null}
+    <Card elevation="sm" padding="md" style={styles.card}>
+      <View style={styles.content}>
+        <View style={styles.mainInfo}>
+          <Text style={Typography.label}>{label}</Text>
+          <Text style={[Typography.h2, { color, marginTop: Spacing.xs }]}>{value}</Text>
+          {sub ? <Text style={[Typography.caption, { marginTop: 2 }]}>{sub}</Text> : null}
+        </View>
+        {icon && (
+          <View style={[styles.iconContainer, { backgroundColor: color + "15" }]}>
+            {icon}
+          </View>
+        )}
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
+    marginBottom: Spacing.md,
+  },
+  content: {
     flexDirection: "row",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
-    marginBottom: 8,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  accent: {
-    width: 3,
-  },
-  body: {
+  mainInfo: {
     flex: 1,
-    padding: 12,
   },
-  iconWrap: {
-    marginBottom: 4,
-  },
-  label: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontWeight: "500",
-    textTransform: "uppercase",
-    letterSpacing: 0.4,
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 1,
-  },
-  sub: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    marginTop: 1,
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

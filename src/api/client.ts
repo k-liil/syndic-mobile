@@ -1,4 +1,15 @@
 import * as SecureStore from "expo-secure-store";
+import { z } from "zod";
+import { 
+  UserProfileSchema, 
+  OrganizationSchema, 
+  ClaimSchema, 
+  DashboardSchema,
+  type UserProfile,
+  type Organization,
+  type Claim,
+  type DashboardData
+} from "./schemas";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? "";
 const TOKEN_KEY = "syndic_token";
@@ -56,17 +67,21 @@ async function buildHeaders(): Promise<Record<string, string>> {
 async function request<T>(
   method: string,
   path: string,
-  body?: unknown,
-  extraParams?: Record<string, string>
+  options: {
+    body?: unknown;
+    params?: Record<string, string>;
+    schema?: z.ZodSchema<T>;
+  } = {}
 ): Promise<T> {
+  const { body, params, schema } = options;
   const url = new URL(`${BASE_URL}${path}`);
-  console.log(`[API] ${method} ${path} - Current _selectedOrgId: ${_selectedOrgId ?? "(none)"}`);
+  
   if (_selectedOrgId) {
     url.searchParams.set("orgId", _selectedOrgId);
-    console.log(`[API] Added orgId to request:`, _selectedOrgId);
   }
-  if (extraParams) {
-    Object.entries(extraParams).forEach(([k, v]) => url.searchParams.set(k, v));
+  
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   }
 
   const headers = await buildHeaders();
@@ -79,13 +94,33 @@ async function request<T>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    if (!res.ok) {
-      const errorText = await res.text().catch(() => "");
-      console.error(`[API] Error ${res.status}:`, errorText);
-      throw new ApiError(res.status, errorText);
+    if (res.status === 401) {
+      console.warn("[API] 401 Unauthorized - trigger logout if needed");
+      // Optional: Emit event or call a logout handler
     }
 
-    return res.json() as Promise<T>;
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const message = errorData.error || errorData.message || "REQUEST_FAILED";
+      console.error(`[API] Error ${res.status}:`, message);
+      throw new ApiError(res.status, message);
+    }
+
+    const data = await res.json();
+    
+    if (schema) {
+      const result = schema.safeParse(data);
+      if (!result.success) {
+        console.error(`[API] Schema validation failed for ${path}:`, result.error);
+        // In dev, we might want to throw. In prod, maybe just log.
+        if (__DEV__) {
+          throw new Error(`Schema validation failed for ${path}`);
+        }
+      }
+      return result.success ? result.data : data;
+    }
+
+    return data as T;
   } catch (error) {
     console.error(`[API] Request failed:`, error);
     throw error;
@@ -104,18 +139,7 @@ export class ApiError extends Error {
 export type LoginResponse = {
   token: string;
   expiresIn: number;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    organizationId: string | null;
-    organizationName: string | null;
-    orgLogoUrl: string | null;
-    ownerId: string | null;
-    unitId: string | null;
-    unitRef: string | null;
-  };
+  user: UserProfile;
 };
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
@@ -130,55 +154,48 @@ export async function login(email: string, password: string): Promise<LoginRespo
     throw new ApiError(res.status, data.error ?? "LOGIN_FAILED");
   }
 
-  return res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    user: UserProfileSchema.parse(data.user)
+  };
 }
 
 export async function fetchMe() {
-  return request<{
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    organizationId: string | null;
-    organizationName: string | null;
-    orgLogoUrl: string | null;
-    ownerId: string | null;
-    unitId: string | null;
-    unitRef: string | null;
-  }>("GET", "/api/mobile/me");
+  return request<UserProfile>("GET", "/api/mobile/me", { schema: UserProfileSchema });
 }
 
 // ─── Organizations ───────────────────────────────────────────────────────────
 
 export async function fetchOrganizations() {
-  console.log("[API] fetchOrganizations called");
-  return request<{ id: string; name: string; logoUrl: string | null }[]>(
-    "GET",
-    "/api/organizations"
-  );
+  return request<Organization[]>("GET", "/api/organizations", { 
+    schema: z.array(OrganizationSchema) 
+  });
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
 export async function fetchDashboard(year?: number) {
-  return request<Record<string, unknown>>(
-    "GET",
-    "/api/dashboard",
-    undefined,
-    year ? { year: String(year) } : undefined
-  );
+  return request<DashboardData>("GET", "/api/dashboard", { 
+    params: year ? { year: String(year) } : undefined,
+    schema: DashboardSchema
+  });
 }
 
 // ─── Owner ledger (cotisations) ──────────────────────────────────────────────
 
 export async function fetchOwnerLedger(ownerId: string) {
-  return request<Record<string, unknown>>("GET", `/api/owners/${ownerId}/ledger`);
+  return request<any>("GET", `/api/owners/${ownerId}/ledger`);
 }
 
 // ─── Claims (réclamations) ───────────────────────────────────────────────────
 
 export async function fetchClaims() {
-  return request<unknown[]>("GET", "/api/claims");
+  return request<Claim[]>("GET", "/api/claims", { schema: z.array(ClaimSchema) });
+}
+
+export async function fetchClaim(id: string) {
+  return request<Claim>("GET", `/api/claims/${id}`, { schema: ClaimSchema });
 }
 
 export async function createClaim(payload: {
@@ -188,19 +205,23 @@ export async function createClaim(payload: {
   unitId: string;
   ownerId: string;
 }) {
-  return request<{ id: string }>("POST", "/api/claims", payload);
+  return request<{ id: string }>("POST", "/api/claims", { body: payload });
 }
 
 export async function addClaimComment(claimId: string, content: string) {
-  return request<{ id: string }>("PATCH", "/api/claims", { id: claimId, comment: content });
+  return request<{ id: string }>("PATCH", "/api/claims", { 
+    body: { id: claimId, comment: content } 
+  });
 }
 
 export async function updateClaimStatus(claimId: string, status: string) {
-  return request<{ id: string }>("PATCH", "/api/claims", { id: claimId, status });
+  return request<{ id: string }>("PATCH", "/api/claims", { 
+    body: { id: claimId, status } 
+  });
 }
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
 
 export async function fetchOwnersSummary() {
-  return request<unknown[]>("GET", "/api/mobile/owners-summary");
+  return request<any[]>("GET", "/api/mobile/owners-summary");
 }

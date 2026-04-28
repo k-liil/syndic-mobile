@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Image,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,7 +10,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
-import { Ionicons } from "@expo/vector-icons";
+import { Card } from "@/src/components/ui/Card";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { ChevronRight, Building2 } from "lucide-react-native";
 import type { OrgInfo } from "@/types";
 
 export default function SelectOrgScreen() {
@@ -26,23 +27,28 @@ export default function SelectOrgScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Image
-            source={require("../assets/icon.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.title}>Choisir une organisation</Text>
-          <Text style={styles.sub}>Sélectionnez l'organisation à gérer</Text>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../assets/icon.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={Typography.h2}>Choisir une organisation</Text>
+          <Text style={[Typography.caption, styles.sub]}>
+            Sélectionnez l'organisation à gérer pour continuer
+          </Text>
         </View>
 
         <View style={styles.list}>
           {orgs.map((org) => (
-            <Pressable
+            <Card
               key={org.id}
-              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+              padding="md"
               onPress={() => handleSelect(org)}
+              style={styles.card}
             >
               <View style={styles.orgIcon}>
                 {org.logoUrl ? (
@@ -52,14 +58,19 @@ export default function SelectOrgScreen() {
                     resizeMode="contain"
                   />
                 ) : (
-                  <Text style={styles.orgInitial}>
-                    {org.name.charAt(0).toUpperCase()}
-                  </Text>
+                  <Building2 size={24} color={Colors.primary} />
                 )}
               </View>
-              <Text style={styles.orgName} numberOfLines={2}>{org.name}</Text>
-              <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-            </Pressable>
+              <View style={styles.orgInfo}>
+                <Text style={Typography.bodySemiBold} numberOfLines={1}>
+                  {org.name}
+                </Text>
+                <Text style={Typography.caption} numberOfLines={1}>
+                  Gestionnaire
+                </Text>
+              </View>
+              <ChevronRight size={20} color={Colors.textMuted} />
+            </Card>
           ))}
         </View>
       </ScrollView>
@@ -68,64 +79,56 @@ export default function SelectOrgScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 24, paddingBottom: 40 },
+  safe: { 
+    flex: 1, 
+    backgroundColor: Colors.background 
+  },
+  content: { 
+    padding: Spacing.lg, 
+    paddingBottom: Spacing.xxl 
+  },
   header: {
     alignItems: "center",
-    marginBottom: 32,
-    marginTop: 16,
+    marginBottom: Spacing.xl,
+    marginTop: Spacing.md,
+  },
+  logoContainer: {
+    backgroundColor: Colors.dark,
+    padding: Spacing.xs,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.md,
+    ...Shadows.sm,
   },
   logo: {
-    width: 68,
-    height: 68,
-    borderRadius: 16,
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: Colors.text,
-    marginBottom: 6,
-    textAlign: "center",
+    width: 48,
+    height: 48,
   },
   sub: {
-    fontSize: 14,
-    color: Colors.textSecondary,
     textAlign: "center",
+    marginTop: Spacing.xs,
   },
-  list: { gap: 10 },
+  list: { 
+    gap: Spacing.md 
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    gap: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
-  cardPressed: { opacity: 0.7 },
   orgIcon: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: Radius.md,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+    marginRight: Spacing.md,
   },
-  orgLogo: { width: 48, height: 48, borderRadius: 12 },
-  orgInitial: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.primary,
+  orgLogo: { 
+    width: "100%", 
+    height: "100%" 
   },
-  orgName: {
+  orgInfo: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: Colors.text,
   },
 });

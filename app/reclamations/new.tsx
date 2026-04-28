@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -13,63 +12,80 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { 
+  ArrowLeft, 
+  Droplet, 
+  Zap, 
+  ArrowUp, 
+  Building2, 
+  Flame, 
+  MoreHorizontal, 
+  Home, 
+  Send 
+} from "lucide-react-native";
 import { createClaim } from "@/api/client";
 import { useUser } from "@/contexts/AuthContext";
 import { Colors } from "@/constants/colors";
+import { Spacing, Typography, Radius, Shadows } from "@/src/constants/ui-tokens";
+import { Button } from "@/src/components/ui/Button";
+import { Card } from "@/src/components/ui/Card";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ClaimCategory } from "@/types";
 
-const CATEGORIES: { label: string; value: ClaimCategory; icon: string }[] = [
-  { label: "Eau", value: "WATER", icon: "water-outline" },
-  { label: "Electricite", value: "ELECTRICITY", icon: "flash-outline" },
-  { label: "Ascenseur", value: "ELEVATOR", icon: "arrow-up-outline" },
-  { label: "Parties communes", value: "COMMON_AREAS", icon: "business-outline" },
-  { label: "Chauffage", value: "HEATING", icon: "flame-outline" },
-  { label: "Autre", value: "OTHER", icon: "ellipsis-horizontal-outline" },
+const CATEGORIES: { label: string; value: ClaimCategory; icon: any }[] = [
+  { label: "Eau", value: "WATER", icon: Droplet },
+  { label: "Électricité", value: "ELECTRICITY", icon: Zap },
+  { label: "Ascenseur", value: "ELEVATOR", icon: ArrowUp },
+  { label: "Parties communes", value: "COMMON_AREAS", icon: Building2 },
+  { label: "Chauffage", value: "HEATING", icon: Flame },
+  { label: "Autre", value: "OTHER", icon: MoreHorizontal },
 ];
 
 export default function NewClaimScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const user = useUser();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<ClaimCategory | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const canSubmit = title.trim().length >= 3 && category !== null && !loading;
+  const submitMutation = useMutation({
+    mutationFn: createClaim,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["claims"] });
+      Alert.alert(
+        "Réclamation envoyée",
+        "Votre réclamation a été soumise avec succès.",
+        [{ text: "OK", onPress: () => router.back() }]
+      );
+    },
+    onError: () => {
+      Alert.alert(
+        "Erreur",
+        "Impossible d'envoyer la réclamation. Vérifiez votre connexion et réessayez."
+      );
+    },
+  });
 
-  async function handleSubmit() {
+  const canSubmit = title.trim().length >= 3 && category !== null && !submitMutation.isPending;
+
+  function handleSubmit() {
     if (!canSubmit) return;
     if (!user.unitId || !user.ownerId) {
       Alert.alert(
         "Profil incomplet",
-        "Votre compte n'est pas associe a un lot. Contactez votre syndic."
+        "Votre compte n'est pas associé à un lot. Contactez votre syndic."
       );
       return;
     }
 
-    setLoading(true);
-    try {
-      await createClaim({
-        title: title.trim(),
-        description: description.trim(),
-        category: category!,
-        unitId: user.unitId,
-        ownerId: user.ownerId,
-      });
-      Alert.alert(
-        "Reclamation envoyee",
-        "Votre reclamation a ete soumise avec succes.",
-        [{ text: "OK", onPress: () => router.back() }]
-      );
-    } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible d'envoyer la reclamation. Verifiez votre connexion et reessayez."
-      );
-    } finally {
-      setLoading(false);
-    }
+    submitMutation.mutate({
+      title: title.trim(),
+      description: description.trim(),
+      category: category!,
+      unitId: user.unitId,
+      ownerId: user.ownerId,
+    });
   }
 
   return (
@@ -78,22 +94,23 @@ export default function NewClaimScreen() {
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Nav bar */}
-        <View style={styles.navBar}>
-          <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={8}>
-            <Ionicons name="arrow-back" size={22} color={Colors.text} />
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={12}>
+            <ArrowLeft size={22} color={Colors.text} />
           </Pressable>
-          <Text style={styles.navTitle}>Nouvelle reclamation</Text>
-          <View style={{ width: 38 }} />
+          <Text style={Typography.h3}>Nouvelle réclamation</Text>
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Title */}
+          {/* Object */}
           <View style={styles.field}>
-            <Text style={styles.label}>Objet *</Text>
+            <Text style={Typography.label}>Objet *</Text>
             <TextInput
               style={styles.input}
               placeholder="Ex: Fuite d'eau dans le couloir..."
@@ -103,46 +120,49 @@ export default function NewClaimScreen() {
               maxLength={100}
               returnKeyType="next"
             />
-            <Text style={styles.charCount}>{title.length}/100</Text>
+            <Text style={Typography.caption}>{title.length}/100</Text>
           </View>
 
           {/* Category */}
           <View style={styles.field}>
-            <Text style={styles.label}>Categorie *</Text>
+            <Text style={Typography.label}>Catégorie *</Text>
             <View style={styles.categoryGrid}>
-              {CATEGORIES.map((cat) => (
-                <Pressable
-                  key={cat.value}
-                  style={[
-                    styles.categoryChip,
-                    category === cat.value && styles.categoryChipActive,
-                  ]}
-                  onPress={() => setCategory(cat.value)}
-                >
-                  <Ionicons
-                    name={cat.icon as any}
-                    size={20}
-                    color={category === cat.value ? "#fff" : Colors.textSecondary}
-                  />
-                  <Text
+              {CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                const active = category === cat.value;
+                return (
+                  <Pressable
+                    key={cat.value}
                     style={[
-                      styles.categoryText,
-                      category === cat.value && styles.categoryTextActive,
+                      styles.categoryChip,
+                      active && styles.categoryChipActive,
                     ]}
+                    onPress={() => setCategory(cat.value)}
                   >
-                    {cat.label}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Icon
+                      size={20}
+                      color={active ? "#fff" : Colors.textSecondary}
+                    />
+                    <Text
+                      style={[
+                        styles.categoryText,
+                        active && styles.categoryTextActive,
+                      ]}
+                    >
+                      {cat.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
           {/* Description */}
           <View style={styles.field}>
-            <Text style={styles.label}>Description (facultatif)</Text>
+            <Text style={Typography.label}>Description (facultatif)</Text>
             <TextInput
               style={[styles.input, styles.textarea]}
-              placeholder="Decrivez le probleme en detail..."
+              placeholder="Décrivez le problème en détail..."
               placeholderTextColor={Colors.textMuted}
               value={description}
               onChangeText={setDescription}
@@ -151,34 +171,30 @@ export default function NewClaimScreen() {
               textAlignVertical="top"
               maxLength={500}
             />
-            <Text style={styles.charCount}>{description.length}/500</Text>
+            <Text style={Typography.caption}>{description.length}/500</Text>
           </View>
 
-          {/* Lot info */}
+          {/* Unit Info */}
           {user.unitRef ? (
-            <View style={styles.infoBox}>
-              <Ionicons name="home-outline" size={16} color={Colors.primary} />
-              <Text style={styles.infoText}>
-                Lot: <Text style={{ fontWeight: "600" }}>{user.unitRef}</Text>
-              </Text>
-            </View>
+            <Card padding="md" style={styles.infoBox}>
+              <View style={styles.infoContent}>
+                <Home size={18} color={Colors.primary} style={{ marginRight: Spacing.sm }} />
+                <Text style={Typography.body}>
+                  Signalement pour le <Text style={{ fontWeight: "700" }}>Lot {user.unitRef}</Text>
+                </Text>
+              </View>
+            </Card>
           ) : null}
 
           {/* Submit */}
-          <Pressable
-            style={[styles.submitBtn, !canSubmit && styles.submitDisabled]}
+          <Button
+            title="Envoyer la réclamation"
             onPress={handleSubmit}
             disabled={!canSubmit}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="send" size={18} color="#fff" />
-                <Text style={styles.submitText}>Envoyer la reclamation</Text>
-              </>
-            )}
-          </Pressable>
+            loading={submitMutation.isPending}
+            icon={Send}
+            style={styles.submitBtn}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -187,119 +203,86 @@ export default function NewClaimScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  navBar: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: Radius.md,
     backgroundColor: Colors.surfaceAlt,
     alignItems: "center",
     justifyContent: "center",
   },
-  navTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: Colors.text,
-  },
   scroll: {
-    padding: 20,
-    paddingBottom: 40,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xxl,
   },
-  field: { marginBottom: 20 },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: 8,
-  },
+  field: { marginBottom: Spacing.lg },
   input: {
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
     fontSize: 15,
     color: Colors.text,
     backgroundColor: Colors.surface,
+    marginTop: Spacing.xs,
+    ...Shadows.sm,
   },
   textarea: {
-    height: 110,
-    paddingTop: 12,
-  },
-  charCount: {
-    fontSize: 11,
-    color: Colors.textMuted,
-    textAlign: "right",
-    marginTop: 4,
+    height: 120,
+    paddingTop: Spacing.sm,
   },
   categoryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
   },
   categoryChip: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
     backgroundColor: Colors.surface,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.border,
+    ...Shadows.sm,
   },
   categoryChipActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    ...Shadows.md,
   },
   categoryText: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...Typography.caption,
+    fontWeight: "600",
     color: Colors.textSecondary,
   },
   categoryTextActive: {
     color: "#fff",
   },
   infoBox: {
+    marginBottom: Spacing.xl,
+    backgroundColor: Colors.primaryLight,
+    borderWidth: 0,
+  },
+  infoContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
-  },
-  infoText: {
-    fontSize: 13,
-    color: Colors.primaryDark,
   },
   submitBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: Colors.primary,
-    borderRadius: 14,
-    paddingVertical: 16,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  submitDisabled: { opacity: 0.5, shadowOpacity: 0 },
-  submitText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+    marginTop: Spacing.md,
   },
 });
