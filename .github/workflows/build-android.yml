@@ -85,11 +85,16 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEYSTORE_FILE_BASE64: ${{ secrets.ANDROID_KEYSTORE_FILE }}
 
+      - name: Rename APK with version
+        run: |
+          mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/syndic-mobile-v${{ env.VERSION }}.apk
+          echo "APK_FILE=syndic-mobile-v${{ env.VERSION }}.apk" >> $GITHUB_ENV
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/syndic-mobile-v${{ env.VERSION }}.apk
           retention-days: 30
 
       - name: Create/Update Latest Release
@@ -98,7 +103,7 @@ jobs:
           tag_name: latest-build
           name: "Latest Build - v${{ env.VERSION }}"
           prerelease: true
-          files: android/app/build/outputs/apk/release/app-release.apk
+          files: android/app/build/outputs/apk/release/syndic-mobile-v${{ env.VERSION }}.apk
           body: |
             # Latest APK Build 📱
 
@@ -117,6 +122,6 @@ jobs:
 
             Scan the QR code below to download directly on your phone:
 
-            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${{ github.server_url }}/${{ github.repository }}/releases/download/latest-build/app-release.apk)
+            ![QR Code](https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${{ github.server_url }}/${{ github.repository }}/releases/download/latest-build/syndic-mobile-v${{ env.VERSION }}.apk)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
