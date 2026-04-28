@@ -42,7 +42,7 @@ type DashData = {
 
 export default function DashboardScreen() {
   console.log("[DashboardScreen] render");
-  const { state, signOut, selectOrg } = useAuth();
+  const { state, selectOrg } = useAuth();
   console.log("[DashboardScreen] auth state:", state.status);
   console.log("[DashboardScreen] selectedOrg:", state.status === "authenticated" ? state.selectedOrg?.name : "N/A");
   console.log("[DashboardScreen] orgs count:", state.status === "authenticated" ? state.orgs.length : 0);
@@ -195,16 +195,6 @@ export default function DashboardScreen() {
             />
           </>
         ) : null}
-
-        {/* Logout */}
-        <View style={styles.logoutRow}>
-          <Text
-            style={styles.logoutLink}
-            onPress={() => void signOut()}
-          >
-            Se deconnecter
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -248,6 +238,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   errorText: { color: Colors.dangerText, fontSize: 14 },
-  logoutRow: { marginTop: 32, alignItems: "center" },
-  logoutLink: { color: Colors.danger, fontSize: 14, fontWeight: "600" },
 });

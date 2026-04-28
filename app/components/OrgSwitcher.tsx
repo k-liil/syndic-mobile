@@ -39,7 +39,7 @@ export default function OrgSwitcher() {
         </View>
         <Ionicons
           name={showDropdown ? "chevron-up" : "chevron-down"}
-          size={16}
+          size={14}
           color={Colors.white}
         />
       </TouchableOpacity>
@@ -100,20 +100,20 @@ const styles = StyleSheet.create({
   switcher: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    gap: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
   orgBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: Colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
   orgBadgeText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "700",
     color: Colors.primary,
   },
@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight,
   },
   orgBadgeSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: Colors.background,
     alignItems: "center",
     justifyContent: "center",
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
   },
   orgBadgeSmallText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "600",
     color: Colors.text,
   },
