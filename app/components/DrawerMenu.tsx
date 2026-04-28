@@ -58,7 +58,7 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
       id: "reclamations",
       label: "Réclamations",
       icon: "chatbubble-ellipses",
-      route: "/(tabs)/reclamations",
+      route: "/reclamations",
       roles: ["SUPER_ADMIN", "MANAGER", "OWNER"],
     },
   ];

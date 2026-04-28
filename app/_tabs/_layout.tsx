@@ -20,16 +20,7 @@ export default function TabsLayout() {
           tabBarActiveTintColor: Colors.tabBarActive,
           tabBarInactiveTintColor: Colors.tabBarInactive,
           tabBarStyle: {
-            backgroundColor: Colors.tabBar,
-            borderTopColor: Colors.tabBarBorder,
-            borderTopWidth: 1,
-            height: 60,
-            paddingBottom: 8,
-            paddingTop: 6,
-          },
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontWeight: "600",
+            display: "none", // Hide tab bar - use drawer menu instead
           },
         }}
       >

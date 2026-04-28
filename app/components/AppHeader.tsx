@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
+import OrgSwitcher from "./OrgSwitcher";
 
 interface AppHeaderProps {
   onMenuPress: () => void;
@@ -10,9 +11,26 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ onMenuPress, title }: AppHeaderProps) {
-  const { state } = useAuth();
+  const { state, logout } = useAuth();
   const selectedOrg = state.status === "authenticated" ? state.selectedOrg : null;
   const orgName = selectedOrg?.name || "Organization";
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Déconnexion",
+      "Êtes-vous sûr de vouloir vous déconnecter ?",
+      [
+        { text: "Annuler", onPress: () => {}, style: "cancel" },
+        {
+          text: "Déconnexion",
+          onPress: async () => {
+            await logout();
+          },
+          style: "destructive",
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.header}>
@@ -27,10 +45,13 @@ export default function AppHeader({ onMenuPress, title }: AppHeaderProps) {
         <Text style={styles.orgName}>{orgName}</Text>
       </View>
 
-      {/* Right Side - Settings/Profile */}
-      <TouchableOpacity style={styles.settingsButton}>
-        <Ionicons name="settings-outline" size={24} color={Colors.white} />
-      </TouchableOpacity>
+      {/* Right Side - Org Switcher + Logout */}
+      <View style={styles.rightContainer}>
+        <OrgSwitcher />
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <Ionicons name="log-out-outline" size={24} color={Colors.white} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -68,8 +89,12 @@ const styles = StyleSheet.create({
     opacity: 0.85,
     marginTop: 2,
   },
-  settingsButton: {
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  logoutButton: {
     padding: 8,
-    marginLeft: 8,
   },
 });
