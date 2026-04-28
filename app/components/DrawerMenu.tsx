@@ -121,7 +121,7 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
         {/* Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionLabel}>Version</Text>
-          <Text style={styles.versionNumber}>v1.1.1</Text>
+          <Text style={styles.versionNumber}>v1.1.2</Text>
         </View>
       </View>
     </SafeAreaView>
