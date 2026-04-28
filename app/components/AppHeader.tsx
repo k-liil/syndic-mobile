@@ -12,7 +12,7 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderProps) {
-  const { state, logout } = useAuth();
+  const { state, signOut } = useAuth();
   const selectedOrg = state.status === "authenticated" ? state.selectedOrg : null;
   const orgName = selectedOrg?.name || "Organization";
 
@@ -27,7 +27,7 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
           onPress: async () => {
             if (onLogout) onLogout(); // Close drawer first
             setTimeout(() => {
-              logout();
+              signOut();
             }, 100);
           },
           style: "destructive",
