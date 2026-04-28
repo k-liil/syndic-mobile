@@ -132,6 +132,12 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
             Déconnexion
           </Text>
         </TouchableOpacity>
+
+        {/* Version */}
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionLabel}>Version</Text>
+          <Text style={styles.versionNumber}>v1.1.0</Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -222,5 +228,22 @@ const styles = StyleSheet.create({
   },
   logoutItem: {
     marginTop: 8,
+  },
+  versionContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopColor: Colors.border,
+    borderTopWidth: 1,
+    alignItems: "center",
+  },
+  versionLabel: {
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  versionNumber: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
 });

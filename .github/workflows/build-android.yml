@@ -32,6 +32,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Extract version from app.json
+        id: version
+        run: |
+          VERSION=$(grep '"version"' app.json | head -1 | sed 's/.*"version": "\([^"]*\)".*/\1/')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Install Expo CLI
         run: npm install -g expo-cli
 
@@ -89,12 +96,13 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: latest-build
-          name: Latest Build
+          name: "Latest Build - v${{ env.VERSION }}"
           prerelease: true
           files: android/app/build/outputs/apk/release/app-release.apk
           body: |
             # Latest APK Build 📱
 
+            **Version**: v${{ env.VERSION }}
             **Build Date**: ${{ github.event.head_commit.timestamp }}
             **Commit**: ${{ github.event.head_commit.id }}
             **Message**: ${{ github.event.head_commit.message }}
