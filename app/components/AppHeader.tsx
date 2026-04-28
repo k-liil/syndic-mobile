@@ -51,7 +51,9 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
 
       {/* Right Side - Org Switcher + Logout */}
       <View style={styles.rightContainer}>
-        <OrgSwitcher />
+        {state.status === "authenticated" && state.selectedOrg && (
+          <OrgSwitcher />
+        )}
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color={Colors.white} />
         </TouchableOpacity>
