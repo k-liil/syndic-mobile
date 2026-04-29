@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
+import Constants from "expo-constants";
 import { Colors } from "@/constants/colors";
 import { ApiError } from "@/api/client";
 import { Button } from "@/components/ui/Button";
@@ -149,7 +150,7 @@ export default function LoginScreen() {
             <Text style={styles.footer}>
               Syndicly © {new Date().getFullYear()}
             </Text>
-            <Text style={styles.version}>v1.2.0</Text>
+            <Text style={styles.version}>v{Constants.expoConfig?.version ?? "1.0.0"}</Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

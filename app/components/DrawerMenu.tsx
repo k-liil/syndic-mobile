@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
+import Constants from "expo-constants";
 import { Colors } from "@/constants/colors";
 
 interface DrawerMenuProps {
@@ -118,10 +119,9 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
           <Text style={styles.footerLabel}>Aide</Text>
         </TouchableOpacity>
 
-        {/* Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionLabel}>Version</Text>
-          <Text style={styles.versionNumber}>v1.1.4</Text>
+          <Text style={styles.versionNumber}>v{Constants.expoConfig?.version ?? "1.0.0"}</Text>
         </View>
       </View>
     </SafeAreaView>
