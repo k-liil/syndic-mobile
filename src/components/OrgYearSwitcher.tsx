@@ -58,7 +58,13 @@ export function OrgYearSwitcher({
       <>
         <Pressable 
           style={styles.headerTrigger} 
-          onPress={() => isMultiOrg || isSuperAdmin ? setVisible(true) : null}
+          onPress={() => {
+            console.log("[OrgYearSwitcher] Header trigger pressed. isMultiOrg:", isMultiOrg, "isSuperAdmin:", isSuperAdmin);
+            if (isMultiOrg || isSuperAdmin) {
+              console.log("[OrgYearSwitcher] Opening modal");
+              setVisible(true);
+            }
+          }}
         >
           <View>
             <Text style={styles.headerTitle}>Syndicly</Text>

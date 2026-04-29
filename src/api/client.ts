@@ -109,6 +109,16 @@ async function request<T>(
 
     console.log(`[API] Response from ${fullUrl}: status ${res.status}`);
 
+    const text = await res.text();
+    let data: any;
+    try {
+      data = text ? JSON.parse(text) : null;
+      console.log(`[API] RAW DATA from ${fullUrl}:`, JSON.stringify(data));
+    } catch (e) {
+      console.log(`[API] Parse error for ${fullUrl}:`, e);
+      throw new Error(`Failed to parse response: ${text}`);
+    }
+
     console.log(`[API] Response status: ${res.status} (${res.ok ? "OK" : "Error"})`);
 
     if (res.status === 401) {
@@ -116,26 +126,22 @@ async function request<T>(
     }
 
     if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      const message = errorData.error || errorData.message || "REQUEST_FAILED";
+      const message = data?.error || data?.message || "REQUEST_FAILED";
       console.error(`[API] Error ${res.status}:`, message);
       throw new ApiError(res.status, message);
     }
 
-    const data = await res.json();
-    
     if (schema) {
       const result = schema.safeParse(data);
       if (!result.success) {
-        console.error(`[API] Schema validation failed for ${path}:`, result.error);
-        // In dev, we might want to throw. In prod, maybe just log.
-        if (__DEV__) {
-          throw new Error(`Schema validation failed for ${path}`);
-        }
+        console.error(`[API] Schema validation failed for ${url}:`, JSON.stringify(result.error.format()));
+        result.error.issues.forEach(issue => {
+          console.error(`[API] Issue at ${issue.path.join('.')}: ${issue.message}`);
+        });
       }
-      return result.success ? result.data : data;
+      return result.success ? result.data : (data as T);
     }
-
+    
     return data as T;
   } catch (error) {
     console.error(`[API] Request failed for ${method} ${url.toString()}:`, error);

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/colors";
+import { useRouter, useSegments } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import OrgSwitcher from "./OrgSwitcher";
@@ -13,9 +13,15 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderProps) {
+  const router = useRouter();
+  const segments = useSegments();
   const { state, signOut } = useAuth();
+  
+  console.log("[AppHeader] render - segments:", JSON.stringify(segments), "status:", state.status);
+  
   const selectedOrg = state.status === "authenticated" ? state.selectedOrg : null;
   const orgName = selectedOrg?.name || "Organization";
+  const canGoBack = segments.length > 2 || (segments[0] === "_tabs" && segments.length > 1 && segments[1] !== "index");
 
   const handleLogout = async () => {
     Alert.alert(
@@ -39,11 +45,17 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
 
   return (
     <View style={styles.header}>
-      {/* Left Area - Menu & Switcher */}
+      {/* Left Area - Back/Menu & Switcher */}
       <View style={styles.leftContainer}>
-        <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-          <Ionicons name="menu" size={28} color="#ffffff" />
-        </TouchableOpacity>
+        {canGoBack ? (
+          <TouchableOpacity onPress={() => router.back()} style={styles.menuButton}>
+            <Ionicons name="chevron-back" size={28} color="#ffffff" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
+            <Ionicons name="menu" size={28} color="#ffffff" />
+          </TouchableOpacity>
+        )}
         
         {state.status === "authenticated" && (
           (state.orgs.length > 1 || state.user?.role === "SUPER_ADMIN") ? (
