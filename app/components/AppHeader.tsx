@@ -81,17 +81,15 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: Colors.primary,
-    paddingTop: 12,
-    paddingBottom: 12,
+    backgroundColor: "#0f172a", // Marine Premium
+    paddingTop: 10,
+    paddingBottom: 10,
     paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    elevation: 0,
+    zIndex: 100,
   },
   menuButton: {
     padding: 4,
@@ -100,7 +98,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 12,
   },
   rightContainer: {
     flexDirection: "row",
@@ -111,22 +109,22 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   headerTrigger: {
-    padding: 4,
+    paddingVertical: 2,
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "800",
     color: "#ffffff",
   },
   headerOrgRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 2,
+    marginTop: 1,
   },
   headerOrgName: {
-    fontSize: 11,
-    color: "#ffffff",
-    opacity: 0.85,
+    fontSize: 10,
+    color: "#94a3b8", // Slate-400
+    fontWeight: "600",
     maxWidth: 200,
   },
 });

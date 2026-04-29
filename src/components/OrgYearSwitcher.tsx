@@ -36,7 +36,14 @@ export function OrgYearSwitcher({
   if (!selectedOrg) return null;
 
   const isMultiOrg = orgs.length > 1;
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+  
+  // Filter years based on organization (Logic for Jardins de Cherrat)
+  const startYear = selectedOrg?.name.includes("Cherrat") ? 2024 : 2022;
+  const currentYearNow = new Date().getFullYear();
+  const years = [];
+  for (let y = currentYearNow; y >= startYear; y--) {
+    years.push(y);
+  }
 
   async function handleSelectOrg(org: OrgInfo) {
     try {
@@ -313,13 +320,12 @@ const styles = StyleSheet.create({
   yearGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.sm,
+    gap: 6,
   },
   yearButton: {
-    flex: 1,
-    minWidth: "30%",
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
+    width: "22%",
+    paddingVertical: 6,
+    borderRadius: Radius.sm,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -329,10 +335,10 @@ const styles = StyleSheet.create({
   yearButtonSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
-    ...Shadows.md,
   },
   yearButtonText: {
-    ...Typography.bodySemiBold,
+    fontSize: 11,
+    fontWeight: "600",
     color: Colors.text,
   },
   yearButtonTextSelected: {

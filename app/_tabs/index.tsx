@@ -5,44 +5,34 @@ import {
   StyleSheet,
   Text,
   View,
+  TouchableOpacity,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchDashboard } from "@/api/client";
-import { KPICard } from "@/components/KPICard";
-import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import { Colors } from "@/constants/colors";
 import { Spacing, Typography, Radius, Shadows } from "@/constants/ui-tokens";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Card } from "@/components/ui/Card";
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Wallet, ArrowDownCircle, Users, AlertCircle } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { AlertCircle } from "lucide-react-native";
+import { useRouter } from "expo-router";
 
 console.log("[DashboardScreen] module loaded");
 
-function fmt(n: number) {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "MAD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function fmtPct(n: number) {
-  return `${Math.round(n)}%`;
-}
-
 export default function DashboardScreen() {
-  const { state, selectOrg } = useAuth();
+  const router = useRouter();
+  const { state } = useAuth();
   const [year, setYear] = useState(new Date().getFullYear());
 
   if (state.status !== "authenticated") {
-    return null; // Layout handles redirection
+    return null;
   }
 
   const user = state.user;
   const selectedOrg = state.selectedOrg;
-  const isSuperAdmin = user.role === "SUPER_ADMIN";
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["dashboard", selectedOrg?.id, year],
@@ -52,117 +42,294 @@ export default function DashboardScreen() {
 
   const renderSkeletons = () => (
     <View style={styles.skeletonContainer}>
-      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
-      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
-      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
-      <Skeleton width="100%" height={100} style={{ marginBottom: Spacing.md }} />
+      <Skeleton width="100%" height={150} style={{ borderRadius: Radius.lg, marginBottom: Spacing.xl }} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        {[1,2,3,4,5,6].map(i => (
+          <Skeleton key={i} width="30%" height={80} style={{ borderRadius: Radius.md }} />
+        ))}
+      </View>
     </View>
   );
 
+  const renderDashboardContent = () => {
+    // Handle both array and object responses
+    const dashboardArray = Array.isArray(data) ? data : (data ? [data] : []);
+    // Find entry for current year, or fallback to first one
+    const currentEntry = dashboardArray.find((d: any) => d.year === year) || dashboardArray[0];
+    const stats = currentEntry?.stats;
+
+    const total = stats?.totalContributions ?? 0;
+    const collected = stats?.collectedAmount ?? 0;
+    const pending = stats?.pendingAmount ?? 0;
+    const rate = total > 0 ? Math.round((collected / total) * 100) : 0;
+
+    return (
+      <View style={styles.contentContainer}>
+        {/* Summary Financial Card */}
+        <Card style={styles.summaryCard} padding="lg" elevation="lg">
+          <View style={styles.summaryHeader}>
+            <Text style={styles.summaryTitle}>Recouvrement {year}</Text>
+            <View style={styles.summaryValueRow}>
+              <Text style={styles.summaryValue}>{rate}%</Text>
+              <Ionicons name="trending-up" size={18} color={Colors.primary} />
+            </View>
+          </View>
+          
+          <View style={styles.summaryDivider} />
+          
+          <View style={styles.summaryFooter}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemValue}>{collected.toLocaleString()} DH</Text>
+              <Text style={styles.summaryItemLabel}>Encaissé</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={[styles.summaryItemValue, { color: Colors.dangerText }]}>{pending.toLocaleString()} DH</Text>
+              <Text style={styles.summaryItemLabel}>Reste à payer</Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* Action Grid (CIH Style) */}
+        <View style={styles.gridSection}>
+          <Text style={styles.sectionTitle}>Mes Services</Text>
+          <View style={styles.grid}>
+            {[
+              { id: 'ledger', label: 'Cotisations', icon: 'wallet-outline', route: '/_tabs/cotisations', color: '#0ea5e9' },
+              { id: 'claims', label: 'Réclamations', icon: 'chatbubble-ellipses-outline', route: '/_tabs/reclamations', color: '#f59e0b' },
+              { id: 'owners', label: 'Copropriétaires', icon: 'people-outline', route: '/_tabs/proprietaires', color: '#10b981' },
+              { id: 'docs', label: 'Documents', icon: 'document-text-outline', route: '/_tabs/documents', color: '#8b5cf6' },
+              { id: 'notifs', label: 'Notifications', icon: 'notifications-outline', route: '/_tabs/notifications', color: '#ef4444' },
+              { id: 'help', label: 'Assistance', icon: 'help-circle-outline', route: '/_tabs/help', color: '#64748b' },
+            ].map((item) => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.gridItem}
+                onPress={() => router.push(item.route as any)}
+              >
+                <View style={[styles.gridIconContainer, { backgroundColor: item.color + '15' }]}>
+                  <Ionicons name={item.icon as any} size={28} color={item.color} />
+                </View>
+                <Text style={styles.gridLabel} numberOfLines={1}>{item.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Info Section */}
+        <View style={styles.infoSection}>
+           <Text style={styles.sectionTitle}>Infos Résidence</Text>
+           <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                 <Ionicons name="business-outline" size={20} color={Colors.textSecondary} />
+                 <Text style={styles.infoText}>{stats?.totalUnits ?? 0} unités enregistrées</Text>
+              </View>
+              <View style={styles.infoRow}>
+                 <Ionicons name="people-outline" size={20} color={Colors.textSecondary} />
+                 <Text style={styles.infoText}>{stats?.totalOwners ?? 0} copropriétaires</Text>
+              </View>
+           </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
+      <StatusBar barStyle="light-content" />
       <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
+        style={styles.container}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
             onRefresh={refetch}
-            tintColor={Colors.primary}
+            tintColor="#ffffff"
           />
         }
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={Typography.caption}>Bonjour,</Text>
-            <Text style={Typography.h2} numberOfLines={1}>
-              {user.name?.split(" ")[0] ?? user.email}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={Typography.label}>Statistiques financières</Text>
+        {/* Welcome Header Background (Marine Gradient Style) */}
+        <View style={styles.welcomeHeader}>
+          <Text style={styles.welcomeTitle}>Bonjour,</Text>
+          <Text style={styles.welcomeName}>{user.name || user.email}</Text>
         </View>
 
         {isLoading ? (
-          renderSkeletons()
+          <View style={{ paddingHorizontal: Spacing.lg, marginTop: -40 }}>
+            {renderSkeletons()}
+          </View>
         ) : error ? (
           <View style={styles.errorBox}>
             <AlertCircle size={20} color={Colors.dangerText} style={{ marginRight: Spacing.sm }} />
-            <Text style={styles.errorText}>Impossible de charger les données.</Text>
+            <Text style={styles.errorText}>Erreur de chargement des données.</Text>
           </View>
-        ) : data ? (
-          <>
-            <KPICard
-              label="Taux de recouvrement"
-              value={data.stats?.collectedAmount !== undefined && data.stats?.totalContributions 
-                ? fmtPct((data.stats.collectedAmount / data.stats.totalContributions) * 100) 
-                : "0%"}
-              sub="Cotisations encaissées vs dues"
-              color={Colors.success}
-              icon={<TrendingUp size={20} color={Colors.success} />}
-            />
-
-            <KPICard
-              label="Solde trésorerie"
-              value={data.stats?.collectedAmount !== undefined ? fmt(data.stats.collectedAmount) : "—"}
-              sub={`Total dû: ${data.stats?.totalContributions ? fmt(data.stats.totalContributions) : "—"}`}
-              color={Colors.primary}
-              icon={<Wallet size={20} color={Colors.primary} />}
-            />
-
-            <KPICard
-              label="Réclamations Actives"
-              value={String(data.stats?.activeClaims ?? 0)}
-              sub="Réclamations en attente ou en cours"
-              color={Colors.warning}
-              icon={<ArrowDownCircle size={20} color={Colors.warning} />}
-            />
-
-            <View style={styles.sectionHeader}>
-              <Text style={Typography.label}>Copropietaires</Text>
-            </View>
-
-            <KPICard
-              label="Total Copropriétaires"
-              value={String(data.stats?.totalOwners ?? 0)}
-              sub={`${data.stats?.totalUnits ?? 0} unités au total`}
-              color={Colors.info}
-              icon={<Users size={20} color={Colors.info} />}
-            />
-          </>
-        ) : null}
+        ) : (
+          renderDashboardContent()
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  content: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.xl,
+  safe: {
+    flex: 1,
+    backgroundColor: Colors.background,
   },
-  sectionHeader: {
-    marginTop: Spacing.lg,
+  container: {
+    flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
+  },
+  welcomeHeader: {
+    backgroundColor: '#0f172a', // Marine Premium
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: 70,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  welcomeTitle: {
+    fontSize: 16,
+    color: '#94a3b8',
+    marginBottom: 2,
+  },
+  welcomeName: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  contentContainer: {
+    marginTop: -45,
+    paddingHorizontal: Spacing.lg,
+  },
+  summaryCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    ...Shadows.lg,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  summaryTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  summaryValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  summaryValue: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  summaryDivider: {
+    height: 1,
+    backgroundColor: Colors.divider,
+    marginVertical: Spacing.md,
+  },
+  summaryFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryItem: {
+    flex: 1,
+  },
+  summaryItemValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  summaryItemLabel: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    fontWeight: '500',
+  },
+  gridSection: {
+    marginTop: Spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: Spacing.md,
+    paddingLeft: 4,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  gridItem: {
+    width: '31%',
+    backgroundColor: '#ffffff',
+    borderRadius: Radius.md,
+    paddingVertical: 18,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    ...Shadows.sm,
+  },
+  gridIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  gridLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  infoSection: {
+    marginTop: Spacing.xl,
+    paddingBottom: 40,
+  },
+  infoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    gap: 12,
+    ...Shadows.sm,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '500',
   },
   skeletonContainer: {
-    marginTop: Spacing.md,
+    gap: Spacing.md,
   },
   errorBox: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.dangerLight,
-    borderRadius: Radius.md,
     padding: Spacing.md,
-    marginTop: Spacing.md,
+    borderRadius: Radius.md,
+    margin: Spacing.lg,
   },
-  errorText: { ...Typography.caption, color: Colors.dangerText },
+  errorText: {
+    fontSize: 14,
+    color: Colors.dangerText,
+    fontWeight: '500',
+  },
 });

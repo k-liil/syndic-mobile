@@ -47,17 +47,30 @@ export const ClaimSchema = z.object({
   })).optional(),
 });
 
-export const DashboardSchema = z.object({
-  stats: z.object({
-    totalOwners: z.number().optional(),
-    totalUnits: z.number().optional(),
-    activeClaims: z.number().optional(),
-    totalContributions: z.number().optional(),
-    collectedAmount: z.number().optional(),
-    pendingAmount: z.number().optional(),
-  }).optional(),
-  recentClaims: z.array(ClaimSchema).optional(),
-});
+export const DashboardSchema = z.union([
+  z.object({
+    stats: z.object({
+      totalOwners: z.number().optional(),
+      totalUnits: z.number().optional(),
+      activeClaims: z.number().optional(),
+      totalContributions: z.number().optional(),
+      collectedAmount: z.number().optional(),
+      pendingAmount: z.number().optional(),
+    }).optional(),
+    recentClaims: z.array(ClaimSchema).optional(),
+  }),
+  z.array(z.object({
+    stats: z.object({
+      totalOwners: z.number().optional(),
+      totalUnits: z.number().optional(),
+      activeClaims: z.number().optional(),
+      totalContributions: z.number().optional(),
+      collectedAmount: z.number().optional(),
+      pendingAmount: z.number().optional(),
+    }).optional(),
+    recentClaims: z.array(ClaimSchema).optional(),
+  }))
+]);
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;
 export type Organization = z.infer<typeof OrganizationSchema>;
