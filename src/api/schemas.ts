@@ -3,14 +3,14 @@ import { z } from "zod";
 export const UserProfileSchema = z.object({
   id: z.string(),
   email: z.string().email(),
-  name: z.string(),
+  name: z.string().nullish(),
   role: z.string(),
-  organizationId: z.string().nullable(),
-  organizationName: z.string().nullable(),
-  orgLogoUrl: z.string().nullable(),
-  ownerId: z.string().nullable(),
-  unitId: z.string().nullable(),
-  unitRef: z.string().nullable(),
+  organizationId: z.string().nullish(),
+  organizationName: z.string().nullish(),
+  orgLogoUrl: z.string().nullish(),
+  ownerId: z.string().nullish(),
+  unitId: z.string().nullish(),
+  unitRef: z.string().nullish(),
 });
 
 export const OrganizationSchema = z.object({

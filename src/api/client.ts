@@ -167,10 +167,19 @@ export async function login(email: string, password: string): Promise<LoginRespo
     body: { email, password },
   });
 
-  return {
-    ...data,
-    user: UserProfileSchema.parse(data.user),
-  };
+  try {
+    return {
+      ...data,
+      user: UserProfileSchema.parse(data.user),
+    };
+  } catch (err) {
+    console.error("[API] UserProfile validation failed:", err);
+    if (err instanceof z.ZodError) {
+      console.error("[API] Validation details:", JSON.stringify(err.format(), null, 2));
+    }
+    // Fallback: return data anyway if in a pinch, but better to fix the schema
+    throw err;
+  }
 }
 
 export async function fetchMe() {
