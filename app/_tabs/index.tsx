@@ -54,13 +54,12 @@ export default function DashboardScreen() {
   const renderDashboardContent = () => {
     // Handle both array and object responses
     const dashboardArray = Array.isArray(data) ? data : (data ? [data] : []);
-    // Find entry for current year, or fallback to first one
-    const currentEntry = dashboardArray.find((d: any) => d.year === year) || dashboardArray[0];
-    const stats = currentEntry?.stats;
-
-    const total = stats?.totalContributions ?? 0;
-    const collected = stats?.collectedAmount ?? 0;
-    const pending = stats?.pendingAmount ?? 0;
+    const currentEntry = dashboardArray.find((d: any) => String(d.year) === String(year)) || dashboardArray[0];
+    
+    const total = currentEntry?.totalContributions ?? 0;
+    const collected = currentEntry?.totalReceipts ?? 0;
+    const payments = Math.abs(currentEntry?.totalPayments ?? 0);
+    const pending = currentEntry?.pendingAmount ?? 0;
     const rate = total > 0 ? Math.round((collected / total) * 100) : 0;
 
     return (
@@ -80,7 +79,7 @@ export default function DashboardScreen() {
           <View style={styles.summaryFooter}>
             <View style={styles.summaryItem}>
               <Text style={styles.summaryItemValue}>{collected.toLocaleString()} DH</Text>
-              <Text style={styles.summaryItemLabel}>Encaissé</Text>
+              <Text style={styles.summaryItemLabel}>Collecté</Text>
             </View>
             <View style={styles.summaryItem}>
               <Text style={[styles.summaryItemValue, { color: Colors.dangerText }]}>{pending.toLocaleString()} DH</Text>
@@ -121,11 +120,11 @@ export default function DashboardScreen() {
            <View style={styles.infoCard}>
               <View style={styles.infoRow}>
                  <Ionicons name="business-outline" size={20} color={Colors.textSecondary} />
-                 <Text style={styles.infoText}>{stats?.totalUnits ?? 0} unités enregistrées</Text>
+                 <Text style={styles.infoText}>Dépenses : {payments.toLocaleString()} DH</Text>
               </View>
               <View style={styles.infoRow}>
                  <Ionicons name="people-outline" size={20} color={Colors.textSecondary} />
-                 <Text style={styles.infoText}>{stats?.totalOwners ?? 0} copropriétaires</Text>
+                 <Text style={styles.infoText}>Organisation : {selectedOrg?.name}</Text>
               </View>
            </View>
         </View>

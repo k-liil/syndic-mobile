@@ -22,37 +22,32 @@ function RootNavigator() {
   useEffect(() => {
     if (state.status === "loading") return;
 
-    void SplashScreen.hideAsync().catch(() => {});
-
     const inLoginScreen = segments[0] === "login";
     const inSelectOrg = segments[0] === "select-org";
     const isAuthenticated = state.status === "authenticated";
 
-    if (!isAuthenticated && !inLoginScreen) {
-      router.replace("/login");
-      return;
-    }
+    console.log("[RootNavigator] Logic Check - Status:", state.status, "InLogin:", inLoginScreen, "Segments:", JSON.stringify(segments));
 
-    if (isAuthenticated) {
+    if (!isAuthenticated) {
+      if (!inLoginScreen) {
+        console.log("[RootNavigator] Unauthenticated -> Redirecting to /login");
+        router.replace("/login");
+      }
+      void SplashScreen.hideAsync().catch(() => {});
+    } else {
       const hasMultipleOrgs = state.orgs.length > 1;
       const needsOrgSelection = hasMultipleOrgs && state.selectedOrg === null;
 
       if (needsOrgSelection && !inSelectOrg) {
+        console.log("[RootNavigator] Multi-org detected -> Redirecting to /select-org");
         router.replace("/select-org");
-        return;
+      } else if (inLoginScreen || segments.length === 0 || segments[0] === "+not-found") {
+        console.log("[RootNavigator] Authenticated -> Moving to /_tabs");
+        router.replace("/_tabs");
       }
-
-      if (inLoginScreen) {
-        router.replace("/_tabs" as any);
-        return;
-      }
-
-      // Allow staying on select-org if multi-org, otherwise push back to tabs
-      if (inSelectOrg && !hasMultipleOrgs) {
-        router.replace("/_tabs" as any);
-      }
+      void SplashScreen.hideAsync().catch(() => {});
     }
-  }, [state.status, (state as any).selectedOrg?.id, segments]);
+  }, [state.status, segments]);
 
   return (
     <>

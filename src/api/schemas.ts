@@ -49,27 +49,16 @@ export const ClaimSchema = z.object({
 
 export const DashboardSchema = z.union([
   z.object({
-    stats: z.object({
-      totalOwners: z.number().optional(),
-      totalUnits: z.number().optional(),
-      activeClaims: z.number().optional(),
-      totalContributions: z.number().optional(),
-      collectedAmount: z.number().optional(),
-      pendingAmount: z.number().optional(),
-    }).optional(),
-    recentClaims: z.array(ClaimSchema).optional(),
+    year: z.union([z.string(), z.number()]).optional(),
+    totalReceipts: z.number().optional(),
+    totalPayments: z.number().optional(),
+    totalContributions: z.number().optional(),
+    pendingAmount: z.number().optional(),
+    totalOwners: z.number().optional(),
+    totalUnits: z.number().optional(),
+    activeClaims: z.number().optional(),
   }),
-  z.array(z.object({
-    stats: z.object({
-      totalOwners: z.number().optional(),
-      totalUnits: z.number().optional(),
-      activeClaims: z.number().optional(),
-      totalContributions: z.number().optional(),
-      collectedAmount: z.number().optional(),
-      pendingAmount: z.number().optional(),
-    }).optional(),
-    recentClaims: z.array(ClaimSchema).optional(),
-  }))
+  z.array(z.any()) // Handle empty []
 ]);
 
 export type UserProfile = z.infer<typeof UserProfileSchema>;

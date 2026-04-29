@@ -15,7 +15,7 @@ interface AppHeaderProps {
 export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderProps) {
   const router = useRouter();
   const segments = useSegments();
-  const { state, signOut } = useAuth();
+  const { state, selectOrg, signOut } = useAuth();
   
   console.log("[AppHeader] render - segments:", JSON.stringify(segments), "status:", state.status);
   
@@ -64,7 +64,7 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
               orgs={state.orgs}
               currentYear={new Date().getFullYear()}
               isSuperAdmin={state.user?.role === "SUPER_ADMIN"}
-              onSelectOrg={state.selectOrg}
+              onSelectOrg={selectOrg}
               onSelectYear={() => {}}
               variant="header"
             />
