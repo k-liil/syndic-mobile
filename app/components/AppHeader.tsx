@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
-import { OrgYearSwitcher } from "@/src/components/OrgYearSwitcher";
+import { OrgYearSwitcher } from "@/components/OrgYearSwitcher";
 import OrgSwitcher from "./OrgSwitcher";
 
 interface AppHeaderProps {
