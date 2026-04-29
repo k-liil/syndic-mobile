@@ -20,6 +20,7 @@ type Props = {
   isSuperAdmin: boolean;
   onSelectOrg: (org: OrgInfo) => Promise<void>;
   onSelectYear: (year: number) => void;
+  variant?: "default" | "header";
 };
 
 export function OrgYearSwitcher({
@@ -29,21 +30,34 @@ export function OrgYearSwitcher({
   isSuperAdmin,
   onSelectOrg,
   onSelectYear,
+  variant = "default",
 }: Props) {
   const [visible, setVisible] = useState(false);
 
-  if (!selectedOrg) return null;
-  const isMultiOrg = orgs.length > 1;
+  if (variant === "header") {
+    return (
+      <>
+        <Pressable 
+          style={styles.headerTrigger} 
+          onPress={() => isMultiOrg || isSuperAdmin ? setVisible(true) : null}
+        >
+          <View>
+            <Text style={styles.headerTitle}>Syndicly</Text>
+            <View style={styles.headerOrgRow}>
+              <Text style={styles.headerOrgName} numberOfLines={1}>
+                {selectedOrg.name}
+              </Text>
+              {(isMultiOrg || isSuperAdmin) && (
+                <ChevronDown size={12} color="#ffffff" style={{ marginLeft: 4, opacity: 0.8 }} />
+              )}
+            </View>
+          </View>
+        </Pressable>
 
-  async function handleSelectOrg(org: OrgInfo) {
-    try {
-      await onSelectOrg(org);
-    } catch (error) {
-      console.error("[OrgYearSwitcher] selectOrg failed:", error);
-    }
+        {renderModal()}
+      </>
+    );
   }
-
-  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   return (
     <>
@@ -77,6 +91,12 @@ export function OrgYearSwitcher({
         <ChevronDown size={16} color={Colors.textSecondary} />
       </Pressable>
 
+      {renderModal()}
+    </>
+  );
+
+  function renderModal() {
+    return (
       <Modal
         visible={visible}
         transparent
@@ -100,7 +120,7 @@ export function OrgYearSwitcher({
                       key={org.id}
                       style={[
                         styles.item,
-                        org.id === selectedOrg.id && styles.itemSelected,
+                        org.id === selectedOrg?.id && styles.itemSelected,
                       ]}
                       onPress={() => {
                         void handleSelectOrg(org);
@@ -120,11 +140,11 @@ export function OrgYearSwitcher({
                           </Text>
                         </View>
                       )}
-                      <Text style={[Typography.bodySemiBold, { flex: 1 }]} numberOfLines={1}>
+                      <Text style={[Typography.bodySemiBold, { flex: 1, fontSize: 13 }]} numberOfLines={1}>
                         {org.name}
                       </Text>
-                      {org.id === selectedOrg.id && (
-                        <CheckCircle2 size={18} color={Colors.primary} />
+                      {org.id === selectedOrg?.id && (
+                        <CheckCircle2 size={16} color={Colors.primary} />
                       )}
                     </Pressable>
                   ))}
@@ -153,6 +173,7 @@ export function OrgYearSwitcher({
                         style={[
                           styles.yearButtonText,
                           year === currentYear && styles.yearButtonTextSelected,
+                          { fontSize: 12 }
                         ]}
                       >
                         {year}
@@ -165,8 +186,8 @@ export function OrgYearSwitcher({
           </View>
         </Pressable>
       </Modal>
-    </>
-  );
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -304,5 +325,24 @@ const styles = StyleSheet.create({
   },
   yearButtonTextSelected: {
     color: "#fff",
+  },
+  headerTrigger: {
+    padding: Spacing.xs,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  headerOrgRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  headerOrgName: {
+    fontSize: 11,
+    color: "#ffffff",
+    opacity: 0.85,
+    maxWidth: 200,
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import { useAuth } from "@/contexts/AuthContext";
+import { OrgYearSwitcher } from "@/src/components/OrgYearSwitcher";
 import OrgSwitcher from "./OrgSwitcher";
 
 interface AppHeaderProps {
@@ -38,15 +39,23 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
 
   return (
     <View style={styles.header}>
-      {/* Menu Hamburger */}
-      <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
-        <Ionicons name="menu" size={28} color="#ffffff" />
-      </TouchableOpacity>
-
-      {/* Title and Org Info */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.appName}>Syndicly</Text>
-        <Text style={styles.orgName}>{orgName}</Text>
+      {/* Left Area - Menu & Switcher */}
+      <View style={styles.leftContainer}>
+        <TouchableOpacity onPress={onMenuPress} style={styles.menuButton}>
+          <Ionicons name="menu" size={28} color="#ffffff" />
+        </TouchableOpacity>
+        
+        {state.status === "authenticated" && (
+          <OrgYearSwitcher
+            selectedOrg={state.selectedOrg}
+            orgs={state.orgs}
+            currentYear={new Date().getFullYear()} // We'll need a way to sync this if it changes
+            isSuperAdmin={state.user?.role === "SUPER_ADMIN"}
+            onSelectOrg={state.selectOrg}
+            onSelectYear={() => {}} // Header year sync is complex, but let's start with this
+            variant="header"
+          />
+        )}
       </View>
 
       {/* Right Side - Logout */}
@@ -74,23 +83,13 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   menuButton: {
-    padding: 8,
-    marginRight: 8,
+    padding: 4,
   },
-  titleContainer: {
+  leftContainer: {
     flex: 1,
-    marginLeft: 12,
-  },
-  appName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#ffffff",
-  },
-  orgName: {
-    fontSize: 12,
-    color: "#ffffff",
-    opacity: 0.85,
-    marginTop: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   rightContainer: {
     flexDirection: "row",
