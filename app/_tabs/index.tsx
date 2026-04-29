@@ -80,16 +80,6 @@ export default function DashboardScreen() {
               {user.name?.split(" ")[0] ?? user.email}
             </Text>
           </View>
-          {selectedOrg ? (
-            <OrgYearSwitcher
-              selectedOrg={selectedOrg}
-              orgs={state.orgs}
-              currentYear={year}
-              isSuperAdmin={isSuperAdmin}
-              onSelectOrg={selectOrg}
-              onSelectYear={setYear}
-            />
-          ) : null}
         </View>
 
         <View style={styles.sectionHeader}>

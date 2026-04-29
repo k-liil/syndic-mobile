@@ -50,10 +50,10 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
     },
     {
       id: "cotisations",
-      label: "Cotisations",
+      label: "Mes cotisations",
       icon: "wallet",
       route: "/_tabs/cotisations",
-      roles: ["SUPER_ADMIN"],
+      roles: ["OWNER"],
     },
     {
       id: "reclamations",
