@@ -144,8 +144,10 @@ ${logsText}`;
                     log.level === "warn" && styles.logWarn,
                   ]}
                 >
-                  <Text style={styles.logTime}>{log.timestamp}</Text>
-                  <Text style={styles.logMessage}>{log.message}</Text>
+                  <Text style={styles.logText}>
+                    <Text style={styles.logTime}>{log.timestamp} </Text>
+                    <Text style={styles.logMessage}>{log.message}</Text>
+                  </Text>
                 </View>
               )}
               style={styles.logsContainer}
@@ -233,9 +235,9 @@ const styles = StyleSheet.create({
   },
   logEntry: {
     backgroundColor: Colors.surface,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginBottom: 2,
     borderLeftWidth: 3,
     borderLeftColor: Colors.primary,
   },
@@ -247,17 +249,18 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.warning,
     backgroundColor: "#fffbf0",
   },
+  logText: {
+    flexDirection: "row",
+  },
   logTime: {
-    fontSize: 11,
+    fontSize: 10,
     color: Colors.textSecondary,
-    fontWeight: "600",
-    marginBottom: 4,
+    fontWeight: "700",
   },
   logMessage: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.text,
     fontFamily: "monospace",
-    lineHeight: 16,
   },
   buttonRow: {
     flexDirection: "row",
