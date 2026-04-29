@@ -11,6 +11,7 @@ import {
   saveOrgId,
   setSelectedOrgId,
 } from "@/api/client";
+import { useRouter } from "expo-router";
 import type { OrgInfo, UserProfile } from "@/types";
 
 type AuthState =
@@ -29,6 +30,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({ status: "loading" });
 
   console.log("[AuthProvider] render — status:", state.status);
@@ -134,7 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await deleteOrgId();
     setSelectedOrgId(null);
     setState({ status: "unauthenticated" });
-  }, []);
+    // Explicitly navigate to login to avoid white screen
+    router.replace("/login");
+  }, [router]);
 
   const selectOrg = useCallback(async (org: OrgInfo) => {
     console.log("[AuthContext] selectOrg called with org:", org.id, org.name);

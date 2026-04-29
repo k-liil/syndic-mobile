@@ -196,9 +196,12 @@ export async function fetchOrganizations() {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
-export async function fetchDashboard(year?: number) {
+export async function fetchDashboard(year?: number, orgId?: string | null) {
   return request<DashboardData>("GET", "/api/dashboard", { 
-    params: year ? { year: String(year) } : undefined,
+    params: {
+      ...(year ? { year: String(year) } : {}),
+      ...(orgId ? { orgId } : {}),
+    },
     schema: DashboardSchema
   });
 }

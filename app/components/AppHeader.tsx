@@ -46,15 +46,26 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
         </TouchableOpacity>
         
         {state.status === "authenticated" && (
-          <OrgYearSwitcher
-            selectedOrg={state.selectedOrg}
-            orgs={state.orgs}
-            currentYear={new Date().getFullYear()} // We'll need a way to sync this if it changes
-            isSuperAdmin={state.user?.role === "SUPER_ADMIN"}
-            onSelectOrg={state.selectOrg}
-            onSelectYear={() => {}} // Header year sync is complex, but let's start with this
-            variant="header"
-          />
+          (state.orgs.length > 1 || state.user?.role === "SUPER_ADMIN") ? (
+            <OrgYearSwitcher
+              selectedOrg={state.selectedOrg}
+              orgs={state.orgs}
+              currentYear={new Date().getFullYear()}
+              isSuperAdmin={state.user?.role === "SUPER_ADMIN"}
+              onSelectOrg={state.selectOrg}
+              onSelectYear={() => {}}
+              variant="header"
+            />
+          ) : (
+            <View style={styles.headerTrigger}>
+              <Text style={styles.headerTitle}>Syndicly</Text>
+              <View style={styles.headerOrgRow}>
+                <Text style={styles.headerOrgName} numberOfLines={1}>
+                  {state.selectedOrg?.name || "Syndicly"}
+                </Text>
+              </View>
+            </View>
+          )
         )}
       </View>
 
@@ -98,5 +109,24 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     padding: 8,
+  },
+  headerTrigger: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  headerOrgRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  headerOrgName: {
+    fontSize: 11,
+    color: "#ffffff",
+    opacity: 0.85,
+    maxWidth: 200,
   },
 });

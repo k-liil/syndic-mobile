@@ -46,7 +46,7 @@ export default function DashboardScreen() {
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["dashboard", selectedOrg?.id, year],
-    queryFn: () => fetchDashboard(year),
+    queryFn: () => fetchDashboard(year, selectedOrg?.id),
     enabled: !!selectedOrg?.id,
   });
 
