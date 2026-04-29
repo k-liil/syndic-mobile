@@ -33,6 +33,18 @@ export function OrgYearSwitcher({
   variant = "default",
 }: Props) {
   const [visible, setVisible] = useState(false);
+  if (!selectedOrg) return null;
+
+  const isMultiOrg = orgs.length > 1;
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
+
+  async function handleSelectOrg(org: OrgInfo) {
+    try {
+      await onSelectOrg(org);
+    } catch (error) {
+      console.error("[OrgYearSwitcher] selectOrg failed:", error);
+    }
+  }
 
   if (variant === "header") {
     return (
