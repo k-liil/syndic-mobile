@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await saveOrgId(orgs[0].id);
     }
 
-    if (orgs.length > 1 && selectedOrg) setSelectedOrgId(selectedOrg.id);
+    if (selectedOrg) setSelectedOrgId(selectedOrg.id);
 
     setState({
       status: "authenticated",

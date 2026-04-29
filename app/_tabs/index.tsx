@@ -76,28 +76,21 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={Typography.caption}>Bonjour,</Text>
-            <Text style={Typography.h2}>
+            <Text style={Typography.h2} numberOfLines={1}>
               {user.name?.split(" ")[0] ?? user.email}
             </Text>
           </View>
-          <View style={styles.avatarWrap}>
-            <Text style={styles.avatarText}>
-              {(user.name ?? user.email).charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          {selectedOrg ? (
+            <OrgYearSwitcher
+              selectedOrg={selectedOrg}
+              orgs={state.orgs}
+              currentYear={year}
+              isSuperAdmin={isSuperAdmin}
+              onSelectOrg={selectOrg}
+              onSelectYear={setYear}
+            />
+          ) : null}
         </View>
-
-        {/* Org & Year switcher */}
-        {selectedOrg ? (
-          <OrgYearSwitcher
-            selectedOrg={selectedOrg}
-            orgs={state.orgs}
-            currentYear={year}
-            isSuperAdmin={isSuperAdmin}
-            onSelectOrg={selectOrg}
-            onSelectYear={setYear}
-          />
-        ) : null}
 
         <View style={styles.sectionHeader}>
           <Text style={Typography.label}>Statistiques financières</Text>
@@ -164,18 +157,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
-  avatarWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.dark,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadows.md,
-  },
-  avatarText: { color: "#fff", fontWeight: "700", fontSize: 18 },
   sectionHeader: {
     marginTop: Spacing.lg,
     marginBottom: Spacing.md,

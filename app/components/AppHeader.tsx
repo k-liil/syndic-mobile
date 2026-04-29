@@ -49,9 +49,8 @@ export default function AppHeader({ onMenuPress, onLogout, title }: AppHeaderPro
         <Text style={styles.orgName}>{orgName}</Text>
       </View>
 
-      {/* Right Side - Org Switcher + Logout */}
+      {/* Right Side - Logout */}
       <View style={styles.rightContainer}>
-        <OrgSwitcher />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color="#ffffff" />
         </TouchableOpacity>
