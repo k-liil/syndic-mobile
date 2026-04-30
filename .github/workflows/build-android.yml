@@ -45,6 +45,12 @@ jobs:
       - name: Generate native code (prebuild)
         run: npx expo prebuild --platform android --clean
 
+      - name: Configure Gradle Memory
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "android.enableJetifier=true" >> android/gradle.properties
+
       - name: Install Fastlane
         run: sudo gem install fastlane
 
@@ -79,6 +85,7 @@ jobs:
         working-directory: ./android
         run: fastlane android build
         env:
+          _JAVA_OPTIONS: "-Xmx4g"
           EXPO_PUBLIC_API_URL: https://syndicly.ma
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
