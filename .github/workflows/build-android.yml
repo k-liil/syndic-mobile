@@ -45,14 +45,6 @@ jobs:
       - name: Generate native code (prebuild)
         run: npx expo prebuild --platform android --clean
 
-      - name: Configure Gradle Memory
-        run: |
-          # Increase memory and fix CMake issues
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-          echo "android.enablePrefab=true" >> android/gradle.properties
-
       - name: Install Fastlane
         run: sudo gem install fastlane
 
@@ -61,7 +53,7 @@ jobs:
           mkdir -p android/fastlane
           cat > android/fastlane/Fastfile << 'EOF'
           default_platform(:android)
-
+ 
           platform :android do
             desc "Build release APK"
             lane :build do
@@ -70,24 +62,25 @@ jobs:
                 sh("echo '#{ENV['ANDROID_KEYSTORE_FILE_BASE64']}' | base64 -d > #{Dir.pwd}/../syndicly-release.jks")
                 UI.message("✅ Keystore created")
               end
-
+ 
               sh("chmod +x ../gradlew")
-
+ 
               gradle(
                 task: "clean assembleRelease",
                 project_dir: "./"
               )
-
+ 
               UI.success("✅ APK built successfully!")
             end
           end
           EOF
-
+ 
       - name: Build APK with Fastlane
         working-directory: ./android
         run: fastlane android build
         env:
-          _JAVA_OPTIONS: "-Xmx4g"
+          _JAVA_OPTIONS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
           EXPO_PUBLIC_API_URL: https://syndicly.ma
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
