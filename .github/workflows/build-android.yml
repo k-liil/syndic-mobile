@@ -40,6 +40,9 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 
 
+      - name: Run Expo Doctor
+        run: npx expo-doctor
+
       - name: Generate native code (prebuild)
         run: npx expo prebuild --platform android --clean
 
@@ -70,6 +73,7 @@ jobs:
  
               gradle(
                 task: "clean assembleRelease",
+                options: "--info --stacktrace",
                 project_dir: "./"
               )
  
