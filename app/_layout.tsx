@@ -8,7 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/api/QueryClient";
 
-console.log("[Layout] Module loaded");
+if (__DEV__) console.log("[Layout] Module loaded");
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
@@ -17,7 +17,7 @@ function RootNavigator() {
   const router = useRouter();
   const segments = useSegments();
 
-  console.log("[RootNavigator] render — status:", state.status, "| segments:", JSON.stringify(segments));
+  if (__DEV__) console.log("[RootNavigator] render — status:", state.status, "| segments:", JSON.stringify(segments));
 
   useEffect(() => {
     if (state.status === "loading") return;
@@ -26,7 +26,7 @@ function RootNavigator() {
     const inSelectOrg = segments[0] === "select-org";
     const isAuthenticated = state.status === "authenticated";
 
-    console.log("[RootNavigator] Logic Check - Status:", state.status, "InLogin:", inLoginScreen, "Segments:", JSON.stringify(segments));
+    if (__DEV__) console.log("[RootNavigator] Logic Check - Status:", state.status, "InLogin:", inLoginScreen, "Segments:", JSON.stringify(segments));
 
     if (!isAuthenticated) {
       if (!inLoginScreen) {

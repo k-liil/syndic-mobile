@@ -20,7 +20,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AlertCircle } from "lucide-react-native";
 import { useRouter } from "expo-router";
 
-console.log("[DashboardScreen] module loaded");
+if (__DEV__) console.log("[DashboardScreen] module loaded");
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -96,19 +96,21 @@ export default function DashboardScreen() {
               { id: 'ledger', label: 'Cotisations', icon: 'wallet-outline', route: '/_tabs/cotisations', color: '#0ea5e9' },
               { id: 'claims', label: 'Réclamations', icon: 'chatbubble-ellipses-outline', route: '/_tabs/reclamations', color: '#f59e0b' },
               { id: 'owners', label: 'Copropriétaires', icon: 'people-outline', route: '/_tabs/proprietaires', color: '#10b981' },
-              { id: 'docs', label: 'Documents', icon: 'document-text-outline', route: '/_tabs/documents', color: '#8b5cf6' },
-              { id: 'notifs', label: 'Notifications', icon: 'notifications-outline', route: '/_tabs/notifications', color: '#ef4444' },
-              { id: 'help', label: 'Assistance', icon: 'help-circle-outline', route: '/_tabs/help', color: '#64748b' },
+              { id: 'docs', label: 'Documents', icon: 'document-text-outline', route: '', color: '#8b5cf6', comingSoon: true },
+              { id: 'notifs', label: 'Notifications', icon: 'notifications-outline', route: '', color: '#ef4444', comingSoon: true },
+              { id: 'help', label: 'Assistance', icon: 'help-circle-outline', route: '', color: '#64748b', comingSoon: true },
             ].map((item) => (
               <TouchableOpacity 
                 key={item.id} 
-                style={styles.gridItem}
-                onPress={() => router.push(item.route as any)}
+                style={[styles.gridItem, item.comingSoon && styles.gridItemDisabled]}
+                onPress={() => item.comingSoon ? null : router.push(item.route as any)}
+                activeOpacity={item.comingSoon ? 0.5 : 0.7}
               >
                 <View style={[styles.gridIconContainer, { backgroundColor: item.color + '15' }]}>
                   <Ionicons name={item.icon as any} size={28} color={item.color} />
                 </View>
                 <Text style={styles.gridLabel} numberOfLines={1}>{item.label}</Text>
+                {item.comingSoon && <Text style={styles.comingSoonBadge}>Bientôt</Text>}
               </TouchableOpacity>
             ))}
           </View>
@@ -293,6 +295,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  gridItemDisabled: {
+    opacity: 0.5,
+  },
+  comingSoonBadge: {
+    fontSize: 8,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginTop: 2,
   },
   infoSection: {
     marginTop: Spacing.xl,

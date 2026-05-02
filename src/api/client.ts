@@ -98,7 +98,7 @@ async function request<T>(
   }
 
   const headers = await buildHeaders();
-  console.log(`[API] Request: ${method} ${fullUrl}`);
+  if (__DEV__) console.log(`[API] ${method} ${fullUrl}`);
 
   try {
     const res = await fetch(fullUrl, {
@@ -107,19 +107,18 @@ async function request<T>(
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    console.log(`[API] Response from ${fullUrl}: status ${res.status}`);
+    if (__DEV__) console.log(`[API] ${res.status} ${fullUrl}`);
 
     const text = await res.text();
     let data: any;
     try {
       data = text ? JSON.parse(text) : null;
-      console.log(`[API] RAW DATA from ${fullUrl}:`, JSON.stringify(data));
     } catch (e) {
-      console.log(`[API] Parse error for ${fullUrl}:`, e);
+      console.error(`[API] Parse error for ${fullUrl}:`, e);
       throw new Error(`Failed to parse response: ${text}`);
     }
 
-    console.log(`[API] Response status: ${res.status} (${res.ok ? "OK" : "Error"})`);
+
 
     if (res.status === 401) {
       console.warn("[API] 401 Unauthorized - trigger logout if needed");
@@ -134,7 +133,7 @@ async function request<T>(
     if (schema) {
       const result = schema.safeParse(data);
       if (!result.success) {
-        console.error(`[API] Schema validation failed for ${url}:`, JSON.stringify(result.error.format()));
+        console.error(`[API] Schema validation failed for ${fullUrl}:`, JSON.stringify(result.error.format()));
         result.error.issues.forEach(issue => {
           console.error(`[API] Issue at ${issue.path.join('.')}: ${issue.message}`);
         });
@@ -144,7 +143,7 @@ async function request<T>(
     
     return data as T;
   } catch (error) {
-    console.error(`[API] Request failed for ${method} ${url.toString()}:`, error);
+    console.error(`[API] Request failed for ${method} ${fullUrl}:`, error);
     // Log the error details if it's a fetch error (like connection refused)
     if (error instanceof Error) {
       console.error(`[API] Error details: ${error.name} - ${error.message}`);

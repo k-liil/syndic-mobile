@@ -50,10 +50,10 @@ export default function DrawerMenu({ onClose }: DrawerMenuProps) {
     },
     {
       id: "cotisations",
-      label: "Mes cotisations",
+      label: userRole === "OWNER" ? "Mes cotisations" : "Suivi Cotisations",
       icon: "wallet",
       route: "/_tabs/cotisations",
-      roles: ["OWNER"],
+      roles: ["SUPER_ADMIN", "MANAGER", "OWNER"],
     },
     {
       id: "reclamations",
@@ -167,11 +167,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: Colors.text,
   },
-  userRole: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
   orgName: {
     fontSize: 11,
     color: Colors.textMuted,
@@ -210,9 +205,6 @@ const styles = StyleSheet.create({
   footerLabel: {
     fontSize: 14,
     color: Colors.textSecondary,
-  },
-  logoutItem: {
-    marginTop: 8,
   },
   versionContainer: {
     marginTop: 12,

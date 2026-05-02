@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Modal, StyleSheet } from "react-native";
 import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/colors";
 import AppHeader from "../components/AppHeader";
 import DrawerMenu from "../components/DrawerMenu";
@@ -101,8 +102,6 @@ export default function TabsLayout() {
     </View>
   );
 }
-
-import { Ionicons } from "@expo/vector-icons";
 
 const styles = StyleSheet.create({
   container: {
