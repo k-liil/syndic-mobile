@@ -1,9 +1,0 @@
-﻿2026-05-02T11:03:08.1663117Z ##[group]Run VERSION=$(grep '"version"' app.json | head -1 | sed 's/.*"version": "\([^"]*\)".*/\1/')
-2026-05-02T11:03:08.1664176Z [36;1mVERSION=$(grep '"version"' app.json | head -1 | sed 's/.*"version": "\([^"]*\)".*/\1/')[0m
-2026-05-02T11:03:08.1665125Z [36;1mecho "version=$VERSION" >> $GITHUB_OUTPUT[0m
-2026-05-02T11:03:08.1665617Z [36;1mecho "VERSION=$VERSION" >> $GITHUB_ENV[0m
-2026-05-02T11:03:08.1688142Z shell: /usr/bin/bash -e {0}
-2026-05-02T11:03:08.1688372Z env:
-2026-05-02T11:03:08.1688665Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
-2026-05-02T11:03:08.1689154Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
-2026-05-02T11:03:08.1689523Z ##[endgroup]

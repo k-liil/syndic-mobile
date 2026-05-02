@@ -1,9 +1,0 @@
-﻿2026-05-02T11:03:16.6940728Z ##[group]Run echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties
-2026-05-02T11:03:16.6942560Z [36;1mecho "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties[0m
-2026-05-02T11:03:16.6943748Z [36;1mecho "android.useAndroidX=true" >> android/gradle.properties[0m
-2026-05-02T11:03:16.6975413Z shell: /usr/bin/bash -e {0}
-2026-05-02T11:03:16.6975826Z env:
-2026-05-02T11:03:16.6976316Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
-2026-05-02T11:03:16.6977218Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
-2026-05-02T11:03:16.6978026Z   VERSION: 1.4.1
-2026-05-02T11:03:16.6978352Z ##[endgroup]
