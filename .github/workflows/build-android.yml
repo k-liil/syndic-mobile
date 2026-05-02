@@ -49,31 +49,23 @@ jobs:
       - name: Restore Fastlane
         run: git checkout android/fastlane
 
-      - name: Configure Gradle Memory
+      - name: Configure Gradle Settings
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties
           echo "android.useAndroidX=true" >> android/gradle.properties
-
-      - name: Install Fastlane
-        run: sudo gem install fastlane
-
-      - name: Force Old Architecture and Gradle Settings
-        run: |
-          # Replace newArchEnabled=true with false instead of appending
-          sed -i 's/newArchEnabled=true/newArchEnabled=false/g' android/gradle.properties
-          # Ensure other settings are correct
           echo "org.gradle.daemon=false" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
           echo "android.extractNativeLibs=true" >> android/gradle.properties
-          echo "cmakeBuildType=Release" >> android/gradle.properties
           cat android/gradle.properties
+
+      - name: Install Fastlane
+        run: sudo gem install fastlane
 
       - name: Build APK with Fastlane
         working-directory: ./android
         run: fastlane android build
         env:
-          _JAVA_OPTIONS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
           EXPO_PUBLIC_API_URL: https://syndicly.ma
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
