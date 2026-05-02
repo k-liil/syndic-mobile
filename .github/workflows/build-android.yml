@@ -54,34 +54,13 @@ jobs:
       - name: Install Fastlane
         run: sudo gem install fastlane
 
-      - name: Create Fastlane Fastfile
+      - name: Force Old Architecture in Gradle
         run: |
-          mkdir -p android/fastlane
-          cat > android/fastlane/Fastfile << 'EOF'
-          default_platform(:android)
- 
-          platform :android do
-            desc "Build release APK"
-            lane :build do
-              # Decode keystore from base64 if provided
-              if ENV['ANDROID_KEYSTORE_FILE_BASE64']
-                sh("echo '#{ENV['ANDROID_KEYSTORE_FILE_BASE64']}' | base64 -d > #{Dir.pwd}/../syndicly-release.jks")
-                UI.message("✅ Keystore created")
-              end
- 
-              sh("chmod +x ../gradlew")
- 
-              gradle(
-                task: "clean assembleRelease",
-                flags: "--info --stacktrace",
-                project_dir: "./"
-              )
- 
-              UI.success("✅ APK built successfully!")
-            end
-          end
-          EOF
- 
+          echo "newArchEnabled=false" >> android/gradle.properties
+          echo "org.gradle.daemon=false" >> android/gradle.properties
+          echo "org.gradle.parallel=false" >> android/gradle.properties
+          cat android/gradle.properties
+
       - name: Build APK with Fastlane
         working-directory: ./android
         run: fastlane android build
