@@ -1,0 +1,32 @@
+﻿2026-05-02T11:03:32.7261460Z ##[group]Run mkdir -p android/fastlane
+2026-05-02T11:03:32.7262140Z [36;1mmkdir -p android/fastlane[0m
+2026-05-02T11:03:32.7262497Z [36;1mcat > android/fastlane/Fastfile << 'EOF'[0m
+2026-05-02T11:03:32.7262785Z [36;1mdefault_platform(:android)[0m
+2026-05-02T11:03:32.7263012Z [36;1m[0m
+2026-05-02T11:03:32.7263184Z [36;1mplatform :android do[0m
+2026-05-02T11:03:32.7263439Z [36;1m  desc "Build release APK"[0m
+2026-05-02T11:03:32.7263670Z [36;1m  lane :build do[0m
+2026-05-02T11:03:32.7263928Z [36;1m    # Decode keystore from base64 if provided[0m
+2026-05-02T11:03:32.7264243Z [36;1m    if ENV['ANDROID_KEYSTORE_FILE_BASE64'][0m
+2026-05-02T11:03:32.7264737Z [36;1m      sh("echo '#{ENV['ANDROID_KEYSTORE_FILE_BASE64']}' | base64 -d > #{Dir.pwd}/../syndicly-release.jks")[0m
+2026-05-02T11:03:32.7265235Z [36;1m      UI.message("✅ Keystore created")[0m
+2026-05-02T11:03:32.7265492Z [36;1m    end[0m
+2026-05-02T11:03:32.7265664Z [36;1m[0m
+2026-05-02T11:03:32.7265831Z [36;1m    sh("chmod +x ../gradlew")[0m
+2026-05-02T11:03:32.7266103Z [36;1m[0m
+2026-05-02T11:03:32.7266257Z [36;1m    gradle([0m
+2026-05-02T11:03:32.7266470Z [36;1m      task: "clean assembleRelease",[0m
+2026-05-02T11:03:32.7266746Z [36;1m      flags: "--info --stacktrace",[0m
+2026-05-02T11:03:32.7267000Z [36;1m      project_dir: "./"[0m
+2026-05-02T11:03:32.7267223Z [36;1m    )[0m
+2026-05-02T11:03:32.7267383Z [36;1m[0m
+2026-05-02T11:03:32.7267573Z [36;1m    UI.success("✅ APK built successfully!")[0m
+2026-05-02T11:03:32.7267840Z [36;1m  end[0m
+2026-05-02T11:03:32.7268001Z [36;1mend[0m
+2026-05-02T11:03:32.7268162Z [36;1mEOF[0m
+2026-05-02T11:03:32.7289577Z shell: /usr/bin/bash -e {0}
+2026-05-02T11:03:32.7289805Z env:
+2026-05-02T11:03:32.7290095Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:03:32.7290571Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:03:32.7290921Z   VERSION: 1.4.1
+2026-05-02T11:03:32.7291106Z ##[endgroup]

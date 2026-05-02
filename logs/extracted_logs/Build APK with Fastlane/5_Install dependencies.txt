@@ -1,0 +1,34 @@
+﻿2026-05-02T11:02:55.6045054Z ##[group]Run npm install
+2026-05-02T11:02:55.6045406Z [36;1mnpm install[0m
+2026-05-02T11:02:55.6076583Z shell: /usr/bin/bash -e {0}
+2026-05-02T11:02:55.6076868Z env:
+2026-05-02T11:02:55.6077175Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:02:55.6077687Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:02:55.6078072Z ##[endgroup]
+2026-05-02T11:02:59.6459086Z npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-05-02T11:02:59.7185664Z npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+2026-05-02T11:02:59.7189687Z npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+2026-05-02T11:02:59.7634944Z npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+2026-05-02T11:02:59.8056892Z npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2026-05-02T11:02:59.8285493Z npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+2026-05-02T11:02:59.9315017Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:02:59.9319171Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:02:59.9324076Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:02:59.9329766Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:02:59.9361342Z npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:03:00.3054149Z npm warn deprecated @xmldom/xmldom@0.7.13: this version has critical issues, please update to the latest version
+2026-05-02T11:03:00.5275706Z npm warn deprecated tar@6.2.1: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:03:01.0278796Z npm warn deprecated glob@9.3.5: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:03:01.0636664Z npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+2026-05-02T11:03:08.0259136Z 
+2026-05-02T11:03:08.0259970Z added 920 packages, and audited 921 packages in 12s
+2026-05-02T11:03:08.0260278Z 
+2026-05-02T11:03:08.0260444Z 96 packages are looking for funding
+2026-05-02T11:03:08.0260754Z   run `npm fund` for details
+2026-05-02T11:03:08.1102513Z 
+2026-05-02T11:03:08.1103287Z 19 vulnerabilities (5 moderate, 14 high)
+2026-05-02T11:03:08.1103714Z 
+2026-05-02T11:03:08.1104146Z To address all issues (including breaking changes), run:
+2026-05-02T11:03:08.1104764Z   npm audit fix --force
+2026-05-02T11:03:08.1105033Z 
+2026-05-02T11:03:08.1105242Z Run `npm audit` for details.

@@ -1,0 +1,16 @@
+﻿2026-05-02T11:03:16.7082269Z ##[group]Run sudo gem install fastlane
+2026-05-02T11:03:16.7082826Z [36;1msudo gem install fastlane[0m
+2026-05-02T11:03:16.7113241Z shell: /usr/bin/bash -e {0}
+2026-05-02T11:03:16.7113630Z env:
+2026-05-02T11:03:16.7114115Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:03:16.7115006Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.18-8/x64
+2026-05-02T11:03:16.7116006Z   VERSION: 1.4.1
+2026-05-02T11:03:16.7116315Z ##[endgroup]
+2026-05-02T11:03:32.6915803Z Successfully installed fastlane-sirp-1.1.0
+2026-05-02T11:03:32.6916545Z Successfully installed fastlane-2.233.1
+2026-05-02T11:03:32.6917164Z Parsing documentation for fastlane-sirp-1.1.0
+2026-05-02T11:03:32.6917801Z Installing ri documentation for fastlane-sirp-1.1.0
+2026-05-02T11:03:32.6918412Z Parsing documentation for fastlane-2.233.1
+2026-05-02T11:03:32.6919009Z Installing ri documentation for fastlane-2.233.1
+2026-05-02T11:03:32.6919832Z Done installing documentation for fastlane-sirp, fastlane after 12 seconds
+2026-05-02T11:03:32.6920550Z 2 gems installed
