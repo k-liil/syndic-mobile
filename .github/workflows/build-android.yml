@@ -73,7 +73,7 @@ jobs:
  
               gradle(
                 task: "clean assembleRelease",
-                options: "--info --stacktrace",
+                flags: "--info --stacktrace",
                 project_dir: "./"
               )
  
