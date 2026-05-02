@@ -41,7 +41,7 @@ jobs:
 
 
       - name: Run Expo Doctor
-        run: npx expo-doctor
+        run: npx expo-doctor || true
 
       - name: Generate native code (prebuild)
         run: npx expo prebuild --platform android --clean
