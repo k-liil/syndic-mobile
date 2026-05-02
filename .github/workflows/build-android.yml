@@ -57,11 +57,14 @@ jobs:
       - name: Install Fastlane
         run: sudo gem install fastlane
 
-      - name: Force Old Architecture in Gradle
+      - name: Force Old Architecture and Gradle Settings
         run: |
-          echo "newArchEnabled=false" >> android/gradle.properties
+          # Replace newArchEnabled=true with false instead of appending
+          sed -i 's/newArchEnabled=true/newArchEnabled=false/g' android/gradle.properties
+          # Ensure other settings are correct
           echo "org.gradle.daemon=false" >> android/gradle.properties
           echo "org.gradle.parallel=false" >> android/gradle.properties
+          echo "android.extractNativeLibs=true" >> android/gradle.properties
           cat android/gradle.properties
 
       - name: Build APK with Fastlane
@@ -69,7 +72,7 @@ jobs:
         run: fastlane android build
         env:
           _JAVA_OPTIONS: "-Xmx4g -XX:MaxMetaspaceSize=1g"
-          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false"
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -PcmakeBuildType=Release"
           EXPO_PUBLIC_API_URL: https://syndicly.ma
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
