@@ -46,6 +46,9 @@ jobs:
       - name: Generate native code (prebuild)
         run: npx expo prebuild --platform android --clean
 
+      - name: Restore Fastlane
+        run: git checkout android/fastlane
+
       - name: Configure Gradle Memory
         run: |
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> android/gradle.properties
